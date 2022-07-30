@@ -1,0 +1,10 @@
+# files
+*.zip
+
+# folders
+.vscode/
+__pycache__/
+data/
+runs/
+examples/
+models/
