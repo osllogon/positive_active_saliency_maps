@@ -1,5 +1,6 @@
 # files
 *.zip
+.ipynb_checkpoints
 
 # folders
 .vscode/
@@ -8,3 +9,4 @@ data/
 runs/
 examples/
 models/
+/visualizations/

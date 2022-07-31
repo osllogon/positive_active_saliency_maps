@@ -64,7 +64,7 @@ class Resnet18(torch.nn.Module):
         return outputs
     
     
-class ConvNextBase(torch.nn.Module):
+class EfficientNetV2(torch.nn.Module):
     """
     This class is a model based in convnext for classification
     
@@ -97,10 +97,10 @@ class ConvNextBase(torch.nn.Module):
 
         # load pretrained convnext_base
         if pretrained:
-            self.model = torchvision.models.efficientnet_v2_m(weights=
-                                                              torchvision.models.EfficientNet_V2_M_Weights.DEFAULT)
+            self.model = torchvision.models.efficientnet_v2_s(weights=
+                                                              torchvision.models.EfficientNet_V2_S_Weights.DEFAULT)
         else:
-            self.model = torchvision.models.efficientnet_v2_m(weights=None)
+            self.model = torchvision.models.efficientnet_v2_s(weights=None)
 
         # define classifier layer
         self.classifier = torch.nn.Sequential(

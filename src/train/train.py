@@ -9,7 +9,7 @@ import os
 from tqdm.auto import tqdm
 
 # own modules
-from src.train.models import Resnet18, ConvNextBase
+from src.train.models import Resnet18, EfficientNetV2
 from src.train.utils import accuracy, load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
 
 # set device
@@ -24,7 +24,7 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 # variables
-dataset = 'cifar10'
+dataset = 'imagenette'
 
 
 if __name__ == '__main__':
@@ -38,14 +38,14 @@ if __name__ == '__main__':
     print(f'device: {device}')
     
     if dataset == 'cifar10':
-        train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=64)
+        train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=128)
     elif dataset == 'imagenette':
         # preprocess step
         if not os.path.isdir(POSTPROCESS_DATA_PATH[dataset]):
             preprocess_imagenette(DATA_PATH[dataset], POSTPROCESS_DATA_PATH[dataset])
 
         # load data
-        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset])
+        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=128)
         
     else:
         raise ValueError('Invdalid dataset value')
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     # define model
     if model_type == 'resnet18':
         model = Resnet18(NUMBER_OF_CLASSES, pretrained).to(device)
-    elif model_type == 'efficientnet_v2_m':
-        model = ConvNextBase(NUMBER_OF_CLASSES, pretrained).to(device)
+    elif model_type == 'efficientnet_v2':
+        model = EfficientNetV2(NUMBER_OF_CLASSES, pretrained).to(device)
 
     # select which layers to activate if pretrained model is loaded
     if pretrained:
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         # activate classifier and first conv layer if color space is different than rgb
         if model_type == 'resnet18':
             model.model.fc.requires_grad_(True)
-        elif model_type == 'efficientnet_v2_m':
+        elif model_type == 'efficientnet_v2':
             model.model.classifier.requires_grad_(True)
     else:
         # activate all layers

@@ -300,11 +300,11 @@ class ActiveSaliencyMap(SaliencyMap):
         torch.Tensor
             batch of active saliency maps. Dimensions: [batch, height, width]
         """
-
+        
         # compute original saliency maps
         saliency_maps = self._compute_gradients(images)
-        number_of_classes = self.model(images).size(0)
-        class_indexes = torch.argmax(self.model(images), dim=1).reshape(number_of_classes, 1, 1, 1)
+        number_of_classes = self.model(images).size(1)
+        class_indexes = torch.argmax(self.model(images), dim=1).reshape(images.size(0), 1, 1, 1)
 
         # iterate over different classes
         for i in range(number_of_classes):
