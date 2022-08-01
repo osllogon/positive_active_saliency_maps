@@ -27,24 +27,8 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 @torch.no_grad()
-def deletion(model_path: str, dataloader: DataLoader, explainer_name: str, percentages: List[float], 
+def deletion(dataloader: DataLoader, explainer: SaliencyMap, percentages: List[float], 
              descending: bool = True) -> List[float]:
-    
-    # define explainer
-    match explainer_name:
-        case "saliency map":
-            explainer1 = ActiveSaliencyMap(torch.load(model_path).to(device))
-            explainer2 = InactiveSaliencyMap(torch.load(model_path).to(device))
-        case "positive saliency map":
-            explainer = PositiveSaliencyMap(torch.load(model_path).to(device))
-        case "negative saliency map":
-            explainer = NegativeSaliencyMap(torch.load(model_path).to(device))
-        case "active saliency map":
-            explainer = ActiveSaliencyMap(torch.load(model_path).to(device))
-        case "inactive saliency map":
-            explainer = InactiveSaliencyMap(torch.load(model_path).to(device))
-        case _:
-            raise ValueError('invalid explainer_name value')
 
     # initialize results variable
     results = [] 
@@ -62,7 +46,7 @@ def deletion(model_path: str, dataloader: DataLoader, explainer_name: str, perce
             labels = labels.to(device)
             
             # compute saliency maps
-            saliency_maps = explainer1.explain(images) + explainer2.explain(images)
+            saliency_maps = explainer.explain(images) + explainer.explain(images)
             saliency_map_sorted, _ = torch.sort(saliency_maps.flatten(start_dim=1), descending=descending)
             
             # occlude pixels
@@ -71,10 +55,13 @@ def deletion(model_path: str, dataloader: DataLoader, explainer_name: str, perce
             mask = (saliency_maps > value) * (saliency_maps != 0) if descending else \
                 (saliency_maps < value) * (saliency_maps != 0)
             mask = mask.unsqueeze(1)
+            # images[:, 0, :, :][mask] =  0.46064087340445936
+            # images[:, 1, :, :][mask] = 0.45542655854304304
+            # images[:, 2, :, :][mask] = 0.4273219960606444
             images = images * ~mask
 
             # compute outputs and loss
-            outputs = explainer1.model(images)
+            outputs = explainer.model(images)
             
             # add accuracy from the batch
             accuracies.append(images.size(0)*accuracy(outputs, labels))
