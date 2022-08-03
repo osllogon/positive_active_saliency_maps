@@ -9,7 +9,7 @@ import os
 from tqdm.auto import tqdm
 
 # own modules
-from src.train.models import Resnet18, EfficientNetV2
+from src.train.models import Resnet18, CNNModel
 from src.train.utils import accuracy, load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
 
 # set device
@@ -24,13 +24,13 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 # variables
-dataset = 'imagenette'
+dataset = 'cifar10'
 
 
 if __name__ == '__main__':
     # hyperparameters
     lr = 1e-3
-    model_type = 'resnet18'
+    model_type = 'cnn'
     pretrained = False
     epochs = 50
 
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     # define model
     if model_type == 'resnet18':
         model = Resnet18(NUMBER_OF_CLASSES, pretrained).to(device)
-    elif model_type == 'efficientnet_v2':
-        model = EfficientNetV2(NUMBER_OF_CLASSES, pretrained).to(device)
+    elif model_type == 'cnn':
+        model = CNNModel(output_channels=NUMBER_OF_CLASSES).to(device)
 
     # select which layers to activate if pretrained model is loaded
     if pretrained:
@@ -69,8 +69,6 @@ if __name__ == '__main__':
         # activate classifier and first conv layer if color space is different than rgb
         if model_type == 'resnet18':
             model.model.fc.requires_grad_(True)
-        elif model_type == 'efficientnet_v2':
-            model.model.classifier.requires_grad_(True)
     else:
         # activate all layers
         for param in model.parameters():
