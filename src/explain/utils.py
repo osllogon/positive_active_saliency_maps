@@ -1,4 +1,5 @@
 # deep learning libraries
+import torch
 import numpy as np
 
 # other libraries
@@ -14,4 +15,10 @@ def auc(vector: List[float], len_between: float = 1.0) -> float:
             area += len_between*vector[i] + len_between*(vector[i-1] - vector[i])/2
             
     return area
-        
+
+def format_image(image: torch.Tensor) -> np.ndarray:
+    
+    image = torch.swapaxes(image, 0, 2)
+    image = torch.swapaxes(image, 0, 1).detach().cpu().numpy()
+    
+    return image
