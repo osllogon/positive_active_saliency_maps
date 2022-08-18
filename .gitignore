@@ -1,6 +1,18 @@
 # files
 *.zip
 .ipynb_checkpoints
+*.bst
+*.aux
+*.log
+*.bbl
+*.blg
+*.fls
+*.log
+*.spl
+*.synctex
+*.cls
+*.fdb_latexmk
+*.gz
 
 # folders
 .vscode/
