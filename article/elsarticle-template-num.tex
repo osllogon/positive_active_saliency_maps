@@ -25,7 +25,6 @@
 %%
 %%
 \documentclass[preprint,12pt]{elsarticle}
-
 %% Use the option review to obtain double line spacing
 %% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
 
@@ -44,6 +43,8 @@
 
 %% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
+\usepackage{relsize}
+
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
 
@@ -153,24 +154,76 @@ keyword one \sep keyword two
 %% main text
 \section{Introduction}
 \label{sec:introduction}
+Since the introduction of AlexNet~\cite{krizhevskyImageNetClassificationDeep2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
 
-Lorem ipsum dolor sit amet, consectetur adipiscing \cite{Fabioetal2013} elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit \cite{Blondeletal2008,FabricioLiang2013} anim id est laborum.
+\begin{itemize}
+    \item Building more interpretable models.
+    \item Developing techniques to explain the state of the art techniques.
+\end{itemize}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum see appendix~\ref{sec:sample:appendix}.
+There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{singhThinkPositiveInterpretable2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{lecunConvolutionalNetworksImages}. To explaining these other models  several techniques have been developed during the last years. One of the most used types are Saliency Maps.
 
-%% The Appendices part is started with the command \appendix;
-%% appendix sections are then done as normal sections
+Saliency Maps were introduced first in~\cite{simonyanDeepConvolutionalNetworks2014a} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
+
+\begin{equation}
+    \label{eq: cnn output}
+    class(I) = argmax_{c \in C}S_c(I),
+\end{equation}
+
+\noindent
+being $I$ the input image, $C$ the set of all possible classes and $S_c$ the classification score. Then, the original Saliency Map method is expressed as:
+
+\begin{equation}
+    \label{eq: saliency map}
+    M_c(I) = max_{channel}\bigg \{ \bigg |\frac{\partial S_c}{\partial I} \bigg | \bigg \}.
+\end{equation}
+
+\noindent
+According to~\cite{simonyanDeepConvolutionalNetworks2014a}, the brightest points in a Saliency Map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about Saliency Maps.
+
+However, the original Saliency Maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{springenbergStrivingSimplicityAll2015}, \cite{sundararajanAxiomaticAttributionDeep2017} or \cite{shrikumarNotJustBlack2017}. By this, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{adebayoSanityChecksSaliency2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
+
+Nevertheless, there is no need of these techniques that improve the visualizations by projecting the image information: more knowledge can be unlocked from the gradients of the neural network without further modifications. First, as far as we know, the sign of the gradients has not been studied in any paper. This sign can have a meaning and a significant impact in the neural network behavior that researchers are trying to understand. Moreover, the type of problem being studied is a multi-class classification problem, and a visualization that tries to explain that, should take into account all these classes and not only the one that is being predicted. In other words, the magnitude of the gradients can have different meaning if it is greater or smaller than the gradients for other classes. 
+
+\section{The Sign in Saliency Maps}
+\label{sec:the sign in saliency maps}
+As pointed out in the last section, as far as we know, there is not any research about the meaning or impact of the sign in Saliency Maps. The only research that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value), it is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this, is that in the former it produces clearer pictures and in the latter is the opposite. However, that can be due to a high number of pixels with a value near zero in the Saliency Map: all the image would bright at a medium intensity. If that is the case, visualizing separately positive and negative gradients will produce clearer pictures. Because of this, in this paper two techniques are proposed:
+
+\begin{itemize}
+    \item Positive Saliency Maps:
+    
+    \begin{equation}
+        \label{eq: positive saliency map}
+        M_c(I) = max_{channel}\bigg \{ ReLU \bigg (\frac{\partial S_c}{\partial I} \bigg ) \bigg \}.
+    \end{equation}
+
+    \item Negative Saliency Maps:
+    
+    \begin{equation}
+        \label{eq: negative saliency map}
+        M_c(I) = max_{channel}\bigg \{ ReLU \bigg (-\frac{\partial S_c}{\partial I} \bigg ) \bigg \}
+    \end{equation}
+
+\end{itemize}
+
+\section{Multi-class Saliency Maps}
+\label{sec:multi-class saliency map}
+As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all Saliency Map techniques used the predicted class to compute the derivatives 
+
+
+\bibliographystyle{elsarticle-num} 
+\bibliography{cas-refs}
+
 \appendix
 
 \section{Sample Appendix Section}
 \label{sec:sample:appendix}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor section \ref{sec:sample1} incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+hey this is gonna be awesome
 
 %% If you have bibdatabase file and want bibtex to generate the
 %% bibitems, please use
 %%
- \bibliographystyle{elsarticle-num} 
- \bibliography{cas-refs}
+
 
 %% else use the following coding to input the bibitems directly in the
 %% TeX file.

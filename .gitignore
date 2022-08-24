@@ -2,17 +2,30 @@
 *.zip
 .ipynb_checkpoints
 *.bst
+*.spl
+*.cls
+*.synctex.gz
 *.aux
-*.log
 *.bbl
 *.blg
+*.idx
+*.ind
+*.lof
+*.lot
+*.out
+*.toc
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
 *.fls
 *.log
-*.spl
-*.synctex
-*.cls
 *.fdb_latexmk
-*.gz
+*.snm
+*.nav
 
 # folders
 .vscode/
