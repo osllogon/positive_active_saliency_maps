@@ -1,0 +1,37 @@
+# files
+*.zip
+.ipynb_checkpoints
+*.bst
+*.spl
+*.cls
+*.synctex.gz
+*.aux
+*.bbl
+*.blg
+*.idx
+*.ind
+*.lof
+*.lot
+*.out
+*.toc
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.fls
+*.log
+*.fdb_latexmk
+*.snm
+*.nav
+
+# folders
+.vscode/
+__pycache__/
+data/
+runs/
+# examples/
+models/
+# /visualizations/
