@@ -28,7 +28,7 @@ NUMBER_OF_CLASSES = 10
 
 @torch.no_grad()
 def deletion(dataloader: DataLoader, explainer: SaliencyMap, percentages: List[float], 
-             descending: bool = True) -> List[float]:
+             descending: bool = True, subs_value: float = 0) -> List[float]:
 
     # initialize results variable
     results = [] 
@@ -58,7 +58,9 @@ def deletion(dataloader: DataLoader, explainer: SaliencyMap, percentages: List[f
             # images[:, 0, :, :][mask] =  0.46064087340445936
             # images[:, 1, :, :][mask] = 0.45542655854304304
             # images[:, 2, :, :][mask] = 0.4273219960606444
-            images = images * ~mask
+            # images = images * ~mask
+            mask = mask.repeat(1, 3, 1, 1)
+            images[mask==1] = subs_value
 
             # compute outputs and loss
             outputs = explainer.model(images)
