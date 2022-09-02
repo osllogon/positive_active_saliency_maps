@@ -44,6 +44,11 @@
 %% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
 \usepackage{relsize}
+\usepackage{array}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
@@ -187,7 +192,16 @@ Nevertheless, there is no need of these techniques that improve the visualizatio
 
 \section{The Sign in Saliency Maps}
 \label{sec:the sign in saliency maps}
-As pointed out in the last section, as far as we know, there is not any research about the meaning or impact of the sign in Saliency Maps. The only research that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value), it is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this, is that in the former it produces clearer pictures and in the latter is the opposite. However, that can be due to a high number of pixels with a value near zero in the Saliency Map: all the image would bright at a medium intensity. If that is the case, visualizing separately positive and negative gradients will produce clearer pictures. Because of this, in this paper two techniques are proposed:
+As pointed out in the last section, there is not any research about the meaning or impact of the sign in Saliency Maps. The only article that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
+
+However, by taking the absolute value of all the pixels in the Saliency Map, information can be lost. It is not only valuable knowing which pixels are important but also their meaning. For example, it would be significant, for the explainability field, having a technique that can indicate which zones of the image should be brighter to improve the classification and which ones should be darker. This is in fact the information that the sign can provide. Moreover, if both information are combined in the same image without any distinctions between them, they can produce worse explanations. It can seem as if the model is not able to distinguish between zones that should be brighter and others that should be brighter, as for example an object in front of a darker background. Based on this, two sets of pixels can be distinguished in the image:
+
+\begin{itemize}
+    \item Pixels that by increasing their value the classification of the model improves\footnote{It is important to note that improving the model classification means that the logit of the predicted class increases. } since they have a positive value in the Saliency Map (positive gradient).
+    \item Pixels that by decreasing their value the classification of the model improves since they have a negative value in the Saliency Map (negative gradient).
+\end{itemize}
+
+Regarding the reason for not using the raw values exposed in~\cite{smilkovSmoothGradRemovingNoise}, it can be due to a high number of 0 values in the Saliency Map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
 
 \begin{itemize}
     \item Positive Saliency Maps:
@@ -206,9 +220,62 @@ As pointed out in the last section, as far as we know, there is not any research
 
 \end{itemize}
 
+By separating them before taking the absolute value the information about what the pixels mean is not lost. 
+
 \section{Multi-class Saliency Maps}
 \label{sec:multi-class saliency map}
-As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all Saliency Map techniques used the predicted class to compute the derivatives 
+As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all Saliency Map techniques used the predicted class to compute the derivatives. That does not take into account the information about other classes that the model is predicting. In other words, there can be another gradient for other class with a higher value than for the predicted class and the current techniques cannot show that to the user. The reason for this is that, if the absolute value of all gradients is taken, there cannot be any comparison with the gradients of other classes, since there is no information anymore that can indicate what means that a gradient is higher or lower than another.
+
+However, going further in the analysis started in the last section about the sign allows to compare the gradients of the predicted class and the other ones. In fact, it improves the previous definitions about the different sets of pixels identified in the last section:
+
+\begin{itemize}
+    \item Pixels that by increasing their value the classification of the model improves\footnote{Since now the other classes are taken into account, the definition of improving the classification is that the difference of the logit of the predicted class and the other logits is greater.} are not always the positive ones. Since now other classes are taken into account, only the pixels that have a higher gradient for the predicted class that for any other class, will improve the classification if their value is increased.
+    \item Analogously, the pixels that by decreasing their value improve the classification are only the ones that have a lower gradient for the predicted class than for any other class.
+\end{itemize}
+
+Therefore, by comparing the Saliency Maps for the different classes the information about the two sets mentioned before can be extracted. Two new techniques are proposed to represent this:
+
+\begin{itemize}
+    \item Active Saliency Map (increasing them improves the classification):
+    
+    \begin{equation}
+        \label{eq: active saliency map}
+        \hat{M}_c(I) = max_{channel} \bigg \{ M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c > \frac{\partial S_q}{\partial I} \bigg \},
+    \end{equation}
+
+    being $M_c$ the Saliency Map (original technique) for the predicted class $c$.
+
+    \item Inactive Saliency Map (decreasing them improves the classification):
+    
+    \begin{equation}
+        \label{eq: inactive saliency map}
+        \hat{M}_c(I) = max_{channel} \bigg \{ M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c < \frac{\partial S_q}{\partial I} \bigg \}.
+    \end{equation}
+
+\end{itemize}
+
+\section{Experiments}
+\label{sec:experiments}
+In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, Cifar10~\cite{CIFAR10CIFAR100Datasets} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of Imagenet. It is used this subset instead of the original Imagenet due to computing restrictions of hardware. Then, two models are trained for each dataset. The first is a CNN model based in a max-pooling several layers for CNNs, and average-pooling and a final linear layer. The second one is the classical Resnet18~\cite{heDeepResidualLearning2016}. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
+
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{|L{0.2\linewidth}|C{0.2\linewidth}|C{0.2\linewidth}|}
+            \hline
+            \textbf{} & \textbf{Cifar10} & \textbf{Imagenette}\\ \hline
+            \textbf{Basic CNN model} & 0.6307 & 0.6205 \\ \hline
+            \textbf{Resnet18} & 0.7569 & 0.8357 \\ \hline
+        \end{tabular}
+        \caption{Training results}
+        \label{tab: training results}
+    \end{center}
+\end{table}
+
+\subsection{Qualitative Evaluation}
+
+
+\subsection{Quantitative Evaluation}
+
 
 
 \bibliographystyle{elsarticle-num} 
@@ -216,8 +283,8 @@ As it was mentioned in Section~\ref{sec:introduction}, the problem being studied
 
 \appendix
 
-\section{Sample Appendix Section}
-\label{sec:sample:appendix}
+\section{Signed Saliency Map Examples}
+\label{sec:signed saliency map examples}
 hey this is gonna be awesome
 
 %% If you have bibdatabase file and want bibtex to generate the
