@@ -51,6 +51,7 @@
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
 
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
@@ -435,7 +436,13 @@ From the comparison it can be appreciated that the proposed techniques reduce th
 
 \subsection{Quantitative Evaluation}
 
-\begin{figure}
+Even though historically the evaluation of Saliency Maps has been quantitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{petsiukRISERandomizedInput},~\cite{hookerBenchmarkInterpretabilityMethods2019} or~\cite{anconaBetterUnderstandingGradientbased2018}. While in~\cite{anconaBetterUnderstandingGradientbased2018} it is studied a desirable property of explainability techniques, in~\cite{petsiukRISERandomizedInput} and~\cite{hookerBenchmarkInterpretabilityMethods2019} the objective is to formulate a metric that could indicate which technique is better. 
+
+Specifically,~\cite{petsiukRISERandomizedInput} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
+
+In~\cite{hookerBenchmarkInterpretabilityMethods2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set where the explainability technique was being measured. However, in the retraining the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned, because the information used by the model to classify can be different now.
+
+\begin{figure}[h]
     \centering
     \begin{subfigure}{0.49\linewidth}
         \centering
@@ -464,7 +471,7 @@ From the comparison it can be appreciated that the proposed techniques reduce th
     \label{fig: black-deletion benchmark}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \begin{subfigure}{0.49\linewidth}
         \centering
@@ -493,7 +500,78 @@ From the comparison it can be appreciated that the proposed techniques reduce th
     \label{fig: white-deletion benchmark}
 \end{figure}
 
-Even though historically the evaluation of Saliency Maps has been quanitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in 
+The problem of the deletion metric is that the value of a pixel cannot be deleted, because for a neural network any value can have some meaning, including the black, the gray or noise. Then, the value introduced can affect different pixels in different ways, introducing unknown biases. However, the separation in two different sets of pixels, the ones that should be brighter to improve the classification and the ones that should be darker, opens the door to implement the deletion technique knowing what means the introduced value. In this paper the two proposed metrics are called black-deletion and white-deletion.
+
+First, the new techniques give the two different sets of pixels. Since increasing the value of some of them improves the classification, putting them to zero should harm severely the classification. On the contrary, the pixels that have to be darker to improve it, should not harm the classification that much. Analogously, putting them to one should show the opposite behaviors. The accuracy for the following fractions of deleted pixels has been computed: [0.1, .2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]. These can be appreciated in Figure~\ref{fig: black-deletion benchmark} and Figure~\ref{fig: white-deletion benchmark}.
+
+In the graphs it can be seen that the behavior is the expected, meaning that the selection the positive, negative, active and inactive gradients worked. To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc saliency maps deletions}
+
+\begin{table}[h]
+    \begin{subtable}{0.45\textwidth}
+        \centering
+        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
+            \hline
+            \textbf{} & \textbf{Black} & \textbf{White} \\ \hline
+            \textbf{Original} & 0.2234 & 0.2075 \\ \hline
+            \textbf{Positive} & 0.1633 & 0.2946 \\ \hline
+            \textbf{Negative} & 0.2613 & 0.1618 \\ \hline
+            \textbf{Active} & 0.1771 & 0.3347 \\ \hline
+            \textbf{Inactive} & 0.3000 & 0.1776 \\ \hline
+        \end{tabular}
+       \caption{Cifar10 CNN}
+    \end{subtable}
+    \hfill
+    \begin{subtable}{0.45\textwidth}
+        \centering
+        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
+            \hline
+            & \textbf{Black} & \textbf{White}\\ \hline
+            \textbf{Original} & 0.2131 & 0.2178 \\ \hline
+            \textbf{Positive} & 0.1327 & 0.2529 \\ \hline
+            \textbf{Negative} & 0.2176 & 0.1432 \\ \hline
+            \textbf{Active} & 0.1357 & 0.2931 \\ \hline
+            \textbf{Inactive} & 0.2577 & 0.1474 \\ \hline
+        \end{tabular}
+        \caption{Cifar10 Resnet18}
+     \end{subtable}
+     \hfill
+     \begin{subtable}[h]{0.45\textwidth}
+        \centering
+        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
+            \hline
+            \textbf{} & \textbf{Black} & \textbf{White}\\ \hline
+            \textbf{Original} & 0.2234 & 0.2075 \\ \hline
+            \textbf{Positive} & 0.1633 & 0.2946 \\ \hline
+            \textbf{Negative} & 0.2613 & 0.1618 \\ \hline
+            \textbf{Active} & 0.1771 & 0.3347 \\ \hline
+            \textbf{Inactive} & 0.3000 & 0.1776 \\ \hline
+        \end{tabular}
+       \caption{Imagenette CNN}
+    \end{subtable}
+    \hfill
+    \begin{subtable}[h]{0.45\textwidth}
+        \centering
+        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
+            \hline
+            \textbf{} & \textbf{Black} & \textbf{White}\\ \hline
+            \textbf{Original} & 0.2131 & 0.2178 \\ \hline
+            \textbf{Positive} & 0.1327 & 0.2529 \\ \hline
+            \textbf{Negative} & 0.2176 & 0.1432 \\ \hline
+            \textbf{Active} & 0.1357 & 0.2931 \\ \hline
+            \textbf{Inactive} & 0.2577 & 0.1474 \\ \hline
+        \end{tabular}
+        \caption{Imagenette Resnet18}
+     \end{subtable}
+     \caption{AUC Saliency Maps Deletions}
+     \label{tab:auc saliency maps deletions}
+\end{table}
+
+It is true that these metrics are still not perfect, since the value used for the deletion are the extremes are pixels maybe improve the classification by being brighter or darker but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
 
 
 \bibliographystyle{elsarticle-num} 
@@ -503,7 +581,7 @@ Even though historically the evaluation of Saliency Maps has been quanitative, t
 
 \section{Signed Saliency Map Examples}
 \label{sec:signed saliency map examples}
-hey this is gonna be awesome
+In this appendix the examples for each technique will be showed for all the combinations 
 
 %% If you have bibdatabase file and want bibtex to generate the
 %% bibitems, please use
