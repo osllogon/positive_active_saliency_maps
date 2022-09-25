@@ -47,11 +47,17 @@
 \usepackage{array}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{amsmath}
+  \DeclareMathOperator*{\argmax}{arg\!max}
+  \DeclareMathOperator*{\argmin}{arg\!min}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
 
 \usepackage{tikz}
 \usepackage{adjustbox}
@@ -97,7 +103,14 @@
 %%             country={}}
 %% \fntext[label3]{}
 
-\title{Signed Saliency Maps}
+%\title{Signed Saliency Maps}
+%\title{The mood of saliency maps: how separating positive and active gradients impact the interpretability  convolutional neural networks}
+%\title{The interpretation depends on your mood: considering the sign of gradients to better identify the relevant pixels in saliency maps}
+%\title{A matter of attitude: Using positive and active gradients to enhance saliency maps}
+%\title{A matter of attitude: Using positive and active gradients to boost saliency maps}
+%\title{A matter of attitude: Analysing positive and active gradients to boost saliency maps}
+\title{A matter of attitude: Focusing on positive and active gradients to boost saliency maps}
+%\title{A matter of attitude: Focusing on positive and active gradients to boost the interpretability/explainability of saliency maps}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{}
@@ -115,9 +128,11 @@
 %%             state={},
 %%             country={}}
 
-\author[inst1]{Oscar Llorente}
+\author[inst1]{Oscar Llorente\corref{cor1}}
+\ead{oscar.llorente.gonzalez@ericsson.com}
+\cortext[cor1]{Corresponding author}
 
-\affiliation[inst1]{organization={BMAS SA NDO SW R\&D Unit B, Ericsson},%Department and Organization
+\affiliation[inst1]{organization={BMAS SA NDO SW R\&D Unit B, Ericsson},
             addressline={Retama Ed 1 Torre Suecia}, 
             city={Madrid},
             postcode={28045}, 
@@ -125,9 +140,11 @@
             country={Spain}}
 
 \author[inst2]{Jaime Boal}
+\ead{jaime.boal@iit.comillas.edu}
 \author[inst2]{Eugenio F. Sánchez-Úbeda}
+\ead{eugenio.sanchez@iit.comillas.edu}
 
-\affiliation[inst2]{organization={Institute for Research in Technology~(IIT), ICAI School of Engineering, Comillas Pontifical University},%Department and Organization
+\affiliation[inst2]{organization={Institute for Research in Technology~(IIT), ICAI School of Engineering, Comillas Pontifical University},
             addressline={Santa Cruz de Marcenado, 26}, 
             city={Madrid},
             postcode={28015}, 
@@ -140,24 +157,24 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 \end{abstract}
 
 %%Graphical abstract
-\begin{graphicalabstract}
-\includegraphics{grabs}
-\end{graphicalabstract}
+%\begin{graphicalabstract}
+%\includegraphics{grabs}
+%\end{graphicalabstract}
 
 %%Research highlights
-\begin{highlights}
-\item Research highlight 1
-\item Research highlight 2
-\end{highlights}
+%\begin{highlights}
+%\item Research highlight 1
+%\item Research highlight 2
+%\end{highlights}
 
 \begin{keyword}
 %% keywords here, in the form: keyword \sep keyword
-keyword one \sep keyword two
+eXplainable Artificial Intelligence (XAI) \sep Convolutional Neural Networks \sep Saliency maps \sep Visualization \sep Gradient signs
 %% PACS codes here, in the form: \PACS code \sep code
-\PACS 0000 \sep 1111
+%\PACS 0000 \sep 1111
 %% MSC codes here, in the form: \MSC code \sep code
 %% or \MSC[2008] code \sep code (2000 is the default)
-\MSC 0000 \sep 1111
+%\MSC 0000 \sep 1111
 \end{keyword}
 
 \end{frontmatter}
@@ -167,72 +184,72 @@ keyword one \sep keyword two
 %% main text
 \section{Introduction}
 \label{sec:introduction}
-Since the introduction of AlexNet~\cite{krizhevskyImageNetClassificationDeep2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
+Since the introduction of AlexNet~\cite{Krizhevsky2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
 
 \begin{itemize}
     \item Building more interpretable models.
     \item Developing techniques to explain the state of the art architectures.
 \end{itemize}
 
-There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{singhThinkPositiveInterpretable2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{lecunConvolutionalNetworksImages}. To explain these other models  several techniques have been developed during the last years. One of the most used types are Saliency Maps.
+There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{Singh2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{LeCun1998}. To explain these other models  several techniques have been developed during the last years. One of the most used types are saliency maps.
 
-Saliency Maps were introduced first in~\cite{simonyanDeepConvolutionalNetworks2014a} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
+Saliency maps were introduced first in~\cite{Simonyan2014} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
 
 \begin{equation}
     \label{eq: cnn output}
-    class(I) = argmax_{c \in C}S_c(I),
+    \text{class}(I) = \argmax_{c \in C}S_c(I),
 \end{equation}
 
 \noindent
-being $I$ the input image, $C$ the set of all possible classes and $S_c$ the classification score. Then, the original Saliency Map method is expressed as:
+being $I$ the input image, $C$ the set of all possible classes and $S_c$ the classification score. Then, the original saliency map method is expressed as:
 
 \begin{equation}
     \label{eq: saliency map}
-    M_c(I) = max_{channel}\bigg \{ \bigg |\frac{\partial S_c}{\partial I} \bigg | \bigg \}.
+    M_c(I) = \max_{channel} \bigg |\frac{\partial S_c}{\partial I} \bigg |
 \end{equation}
 
 \noindent
-According to~\cite{simonyanDeepConvolutionalNetworks2014a}, the brightest points in a Saliency Map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about Saliency Maps.
+According to~\cite{Simonyan2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
 
-However, the original Saliency Maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{springenbergStrivingSimplicityAll2015}, \cite{sundararajanAxiomaticAttributionDeep2017} or \cite{shrikumarNotJustBlack2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{adebayoSanityChecksSaliency2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
+However, the original saliency maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{Springenberg2015, Sundararajan2017, Shrikumar2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{Adebayo2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
 
-Nevertheless, there is no need of using these techniques to improve the ones from the original Saliency Maps: more knowledge can be unlocked from the gradients of the neural network without further modifications. First, the sign of the gradients has not been studied in any paper. This sign can have a meaning and a significant impact in the neural network behavior that researchers are trying to understand. Moreover, the type of problem being studied is a multi-class classification problem, and a visualization that tries to explain that, should take into account all these classes and not only the one that is being predicted. In other words, the magnitude of the gradients can have a different meaning depending on whether it is greater or smaller than the gradients for other classes. 
+Nevertheless, there is no need of using these techniques to improve the ones from the original saliency maps: more knowledge can be unlocked from the gradients of the neural network without further modifications. First, the sign of the gradients has not been studied in any paper. This sign can have a meaning and a significant impact in the neural network behavior that researchers are trying to understand. Moreover, the type of problem being studied is a multi-class classification problem, and a visualization that tries to explain that, should take into account all these classes and not only the one that is being predicted. In other words, the magnitude of the gradients can have a different meaning depending on whether it is greater or smaller than the gradients for other classes. 
 
-\section{The Sign in Saliency Maps}
+\section{The sign in saliency maps}
 \label{sec:the sign in saliency maps}
-As pointed out in the last section, there is not any research about the meaning or impact of the sign in Saliency Maps. The only article that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
+As pointed out in the last section, there is not any research about the meaning or impact of the sign in saliency maps. The only article that discuss briefly this aspect is~\cite{Smilkov2017}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
 
-However, by taking the absolute value of all the pixels in the Saliency Map, information can be lost. It is not only valuable knowing which pixels are important but also their meaning. For example, it would be significant, for the explainability field, having a technique that can indicate which zones of the image should be brighter to improve the classification and which ones should be darker. This is in fact the information that the sign can provide. Moreover, if both sets of pixels are combined in the same image without any distinctions between them, they can produce worse explanations. It can seem as if the model is not able to distinguish between zones that should be brighter and others that should be darker, as for example an object in front of a black background. Based on this, two sets of pixels can be distinguished in the image:
+However, by taking the absolute value of all the pixels in the saliency map, information can be lost. It is not only valuable knowing which pixels are important but also their meaning. For example, it would be significant, for the explainability field, having a technique that can indicate which zones of the image should be brighter to improve the classification and which ones should be darker. This is in fact the information that the sign can provide. Moreover, if both sets of pixels are combined in the same image without any distinctions between them, they can produce worse explanations. It can seem as if the model is not able to distinguish between zones that should be brighter and others that should be darker, as for example an object in front of a black background. Based on this, two sets of pixels can be distinguished in the image:
 
 \begin{itemize}
-    \item Pixels that by increasing their value the classification of the model improves\footnote{It is important to note that improving the model classification means that the logit of the predicted class increases. } since they have a positive value in the Saliency Map (positive gradient).
-    \item Pixels that by decreasing their value the classification of the model improves since they have a negative value in the Saliency Map (negative gradient).
+    \item Pixels that by increasing their value the classification of the model improves\footnote{It is important to note that improving the model classification means that the logit of the predicted class increases. } since they have a positive value in the saliency map (positive gradient).
+    \item Pixels that by decreasing their value the classification of the model improves since they have a negative value in the saliency map (negative gradient).
 \end{itemize}
 
-Regarding the reason for not using the raw values exposed in~\cite{smilkovSmoothGradRemovingNoise}, it can be due to a high number of 0 values in the Saliency Map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
+Regarding the reason for not using the raw values exposed in~\cite{Smilkov2017}, it can be due to a high number of 0 values in the saliency map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
 
 \begin{itemize}
-    \item Positive Saliency Maps:
+    \item Positive saliency maps:
     
     \begin{equation}
+        M_c(I) = \max_{channel} \text{ReLU} \bigg (\frac{\partial S_c}{\partial I} \bigg )
         \label{eq: positive saliency map}
-        M_c(I) = max_{channel}\bigg \{ ReLU \bigg (\frac{\partial S_c}{\partial I} \bigg ) \bigg \}.
     \end{equation}
 
-    \item Negative Saliency Maps:
+    \item Negative saliency maps:
     
     \begin{equation}
+        M_c(I) = \max_{channel} \text{ReLU} \bigg (-\frac{\partial S_c}{\partial I} \bigg )
         \label{eq: negative saliency map}
-        M_c(I) = max_{channel}\bigg \{ ReLU \bigg (-\frac{\partial S_c}{\partial I} \bigg ) \bigg \}
     \end{equation}
 
 \end{itemize}
 
 By separating them before taking the absolute value the information about what the pixels mean is not lost. 
 
-\section{Multi-class Saliency Maps}
+\section{Multi-class saliency maps}
 \label{sec:multi-class saliency map}
-As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all Saliency Map techniques used the predicted class to compute the derivatives. That does not take into account the information about other classes that the model is predicting. In other words, there can be another gradient for other class with a higher value than for the predicted class and the current techniques cannot show that to the user. The reason for this is that, if the absolute value of all gradients is taken, there cannot be any comparison with the gradients of other classes, since there is no information anymore that can indicate what that a gradient is higher or lower than another means.
+As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all saliency map techniques used the predicted class to compute the derivatives. That does not take into account the information about other classes that the model is predicting. In other words, there can be another gradient for other class with a higher value than for the predicted class and the current techniques cannot show that to the user. The reason for this is that, if the absolute value of all gradients is taken, there cannot be any comparison with the gradients of other classes, since there is no information anymore that can indicate what that a gradient is higher or lower than another means.
 
 However, going further in the analysis started in the last section about the sign allows to compare the gradients of the predicted class and the other ones. In fact, it improves the previous definitions about the different sets of pixels identified in the last section:
 
@@ -241,266 +258,130 @@ However, going further in the analysis started in the last section about the sig
     \item Analogously, the pixels that by decreasing their value improve the classification are only the ones that have a lower gradient for the predicted class than for any other class.
 \end{itemize}
 
-Therefore, by comparing the Saliency Maps for the different classes the information about the two sets mentioned before can be extracted. Two new techniques are proposed to represent this:
+Therefore, by comparing the saliency maps for the different classes the information about the two sets mentioned before can be extracted. Two new techniques are proposed to represent this:
 
 \begin{itemize}
-    \item Active Saliency Map (increasing them improves the classification):
+    \item Active saliency map (increasing them improves the classification):
     
     \begin{equation}
         \label{eq: active saliency map}
-        \hat{M}_c(I) = max_{channel} \bigg \{ M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c > \frac{\partial S_q}{\partial I} \bigg \},
+        \hat{M}_c(I) = \max_{channel} M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c > \frac{\partial S_q}{\partial I}
     \end{equation}
 
-    being $M_c$ the Saliency Map (original technique) for the predicted class $c$.
+    being $M_c$ the saliency map (original technique) for the predicted class $c$.
 
-    \item Inactive Saliency Map (decreasing them improves the classification):
+    \item Inactive saliency map (decreasing them improves the classification):
     
     \begin{equation}
         \label{eq: inactive saliency map}
-        \hat{M}_c(I) = max_{channel} \bigg \{ M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c < \frac{\partial S_q}{\partial I} \bigg \}.
+        \hat{M}_c(I) = \max_{channel} M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c < \frac{\partial S_q}{\partial I}
     \end{equation}
 
 \end{itemize}
 
 \section{Experiments}
 \label{sec:experiments}
-In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, Cifar10~\cite{CIFAR10CIFAR100Datasets} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of ImageNet. It is used this subset instead of the original ImageNet due to computing restrictions of hardware. Then, two models are trained for each dataset. The first is a CNN model based in a max-pooling, several layers for CNNs, an average-pooling and a final linear layer. The second one is the classical Resnet18~\cite{heDeepResidualLearning2016}. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
+In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, {CIFAR-10}~\cite{DatasetCIFAR} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of ImageNet. It is used this subset instead of the original ImageNet due to computing restrictions of hardware. Then, two models are trained for each dataset. The first is a CNN model based in a max-pooling, several layers for CNNs, an average-pooling and a final linear layer. The second one is the classical ResNet-18~\cite{He2016}. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
 
-\begin{table}[h!]
-    \begin{center}
-        \begin{tabular}{|L{0.2\linewidth}|C{0.2\linewidth}|C{0.2\linewidth}|}
-            \hline
-            \textbf{} & \textbf{Cifar10} & \textbf{Imagenette}\\ \hline
-            \textbf{Basic CNN model} & 0.6307 & 0.6205 \\ \hline
-            \textbf{Resnet18} & 0.7569 & 0.8357 \\ \hline
-        \end{tabular}
-        \caption{Training results}
-        \label{tab: training results}
-    \end{center}
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Training results.}
+  \label{tab: training results}
+  \begin{tabular}{L{2cm}C{2cm}C{2cm}}
+    \toprule
+    {} & CIFAR-10 & Imagenette \\
+    \midrule
+    Basic CNN & 0.6307 & 0.6205 \\
+    ResNet-18  & 0.7569 & 0.8357 \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
-\subsection{Qualitative Evaluation}
+\subsection{Qualitative evaluation}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/1.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/1.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png}
-        \caption{inactive}
-    \end{subfigure}
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/2.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/2.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png}
-        \caption{inactive}
-    \end{subfigure}
-    \caption{Comparison Saliency Maps CNN Cifar10}
-    \label{fig: comparison saliency maps cnn cifar10}
+\begin{figure}[ht]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.35}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps CNN CIFAR-10.}
+  \label{fig: comparison saliency maps cnn cifar10}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/0.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/0.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/0.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/0.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/0.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/0.png}
-        \caption{inactive}
-    \end{subfigure}\\
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/8.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/8.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/8.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/8.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/8.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/8.png}
-        \caption{inactive}
-    \end{subfigure}
-    \caption{Comparison Saliency Maps Resnet18 Imagenette}
-    \label{fig: comparison saliency maps resnet18 imagenette}
+\begin{figure}[ht]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.35}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps ResNet-18 Imagenette.}
+  \label{fig: comparison saliency maps resnet18 imagenette}
 \end{figure}
 
-Following the same approach that can be found in the literature of Saliency Maps, first the techniques will be visually evaluated. In several papers, as in \cite{simonyanDeepConvolutionalNetworks2014a}, \cite{springenbergStrivingSimplicityAll2015}, \cite{smilkovSmoothGradRemovingNoise} or \cite{sundararajanAxiomaticAttributionDeep2017}, the different techniques were compared based on a visual inspection. 
+Following the same approach that can be found in the literature of saliency maps, first the techniques will be visually evaluated. In several papers, as in \cite{Simonyan2014}, \cite{Springenberg2015}, \cite{Smilkov2017} or \cite{Sundararajan2017}, the different techniques were compared based on a visual inspection. 
 
 One trend in the mentioned article is to just show some examples of the visualization to make the comparison. However, in none of them is explained how these examples are obtained. Therefore, it could be the case that the visualization is better for a certain class or example. To solve this problem in this paper a correct example for each class from the test is selected. These images are shown in~\ref{sec:signed saliency map examples}. Here, two examples can be observed in Figure~\ref{fig: comparison saliency maps cnn cifar10} and Figure~\ref{fig: comparison saliency maps resnet18 imagenette}.
 
-From the comparison it can be appreciated that the proposed techniques reduce the noise of the original Saliency Maps, producing sharper visualization. The shape of the objects that the neural network is classifying are is clearer and there is a higher level of detail.
+From the comparison it can be appreciated that the proposed techniques reduce the noise of the original saliency maps, producing sharper visualization. The shape of the objects that the neural network is classifying are is clearer and there is a higher level of detail.
 
-\subsection{Quantitative Evaluation}
+\subsection{Quantitative evaluation}
 
-Even though historically the evaluation of Saliency Maps has been qualitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{petsiukRISERandomizedInput},~\cite{hookerBenchmarkInterpretabilityMethods2019} or~\cite{anconaBetterUnderstandingGradientbased2018}. While in~\cite{anconaBetterUnderstandingGradientbased2018} it is studied a desirable property of explainability techniques, in~\cite{petsiukRISERandomizedInput} and~\cite{hookerBenchmarkInterpretabilityMethods2019} the objective is to formulate a metric that could indicate which technique is better. 
+Even though historically the evaluation of saliency maps has been qualitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{Petsiuk2018},~\cite{Hooker2019} or~\cite{Ancona2018}. While in~\cite{Ancona2018} it is studied a desirable property of explainability techniques, in~\cite{Petsiuk2018} and~\cite{Hooker2019} the objective is to formulate a metric that could indicate which technique is better. 
 
-Specifically,~\cite{petsiukRISERandomizedInput} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
+Specifically,~\cite{Petsiuk2018} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
 
-In~\cite{hookerBenchmarkInterpretabilityMethods2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set where the explainability technique was being measured. However, in the retraining, the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned because the information used by the model to classify can be different now.
+In~\cite{Hooker2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set where the explainability technique was being measured. However, in the retraining, the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned because the information used by the model to classify can be different now.
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
-    \begin{subfigure}{0.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/black_deletion/cifar10_cnn.pdf}
-        \caption{Cifar10 CNN}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/black_deletion/cifar10_resnet18.pdf}
-        \caption{Cifar10 Resnet18}
-    \end{subfigure}\\
-    \hfill
-    \begin{subfigure}{0.49\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/black_deletion/imagenette_cnn.pdf}
-        \caption{Imagenette CNN}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.49\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/black_deletion/imagenette_resnet18.pdf}
-        \caption{Imagenette Renset18}
-    \end{subfigure}
-    \caption{Black-Deletion Benchmark}
+    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/cifar10_cnn.pdf}} \hfill
+    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/cifar10_resnet18.pdf}} \\
+    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/imagenette_cnn.pdf}} \hfill
+    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/imagenette_resnet18.pdf}} \\
+    \caption{Black-Deletion Benchmark.}
     \label{fig: black-deletion benchmark}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
-    \begin{subfigure}{0.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/white_deletion/cifar10_cnn.pdf}
-        \caption{Cifar10 CNN}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/white_deletion/cifar10_resnet18.pdf}
-        \caption{Cifar10 Resnet18}
-    \end{subfigure}\\
-    \hfill
-    \begin{subfigure}{0.49\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/white_deletion/imagenette_cnn.pdf}
-        \caption{Imagenette CNN}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.49\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/benchmarks/white_deletion/imagenette_resnet18.pdf}
-        \caption{Imagenette Renset18}
-    \end{subfigure}
+    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/cifar10_cnn.pdf}} \hfill
+    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/cifar10_resnet18.pdf}} \\
+    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/imagenette_cnn.pdf}} \hfill
+    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/imagenette_resnet18.pdf}} \\
     \caption{White-Deletion Benchmark}
     \label{fig: white-deletion benchmark}
 \end{figure}
@@ -509,1555 +390,371 @@ Going back to the deletion metric, its problem is that the value of a pixel cann
 
 First, the new techniques give the user the two different sets of pixels (should be brighter and should be darker). Since increasing the value of some of them improves the classification, putting them to zero (black-deletion) should harm severely the classification. On the contrary, the pixels that have to be darker to improve it, should not harm the classification that much. Analogously, putting them to one (white deletion) should show the opposite behaviors. The accuracy for the following fractions of deleted pixels has been computed: [0.1, .2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]. These can be appreciated in Figure~\ref{fig: black-deletion benchmark} and Figure~\ref{fig: white-deletion benchmark}. 
 
-In the graphs it can be seen that the behavior is the expected, meaning that the selection of positive, negative, active and inactive gradients worked. As expected, the decrease in accuracy for black-deletion is greater for active and positive (being active the greatest) and smaller for negative and inactive (being inactive the smallest decrease). To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc saliency maps deletions}. The intuition of what would happen in the experiments was correct and Active and Inactive Saliency Maps seem to be an improvement over Positive and Negative variants (as they are theoretically).
+In the graphs it can be seen that the behavior is the expected, meaning that the selection of positive, negative, active and inactive gradients worked. As expected, the decrease in accuracy for black-deletion is greater for active and positive (being active the greatest) and smaller for negative and inactive (being inactive the smallest decrease). To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc saliency maps deletions}. The intuition of what would happen in the experiments was correct and active and inactive saliency maps seem to be an improvement over Positive and Negative variants (as they are theoretically).
 
-\begin{table}[h]
-    \begin{subtable}{0.45\textwidth}
-        \centering
-        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
-            \hline
-            \textbf{} & \textbf{Black} & \textbf{White} \\ \hline
-            \textbf{Original} & 0.2234 & 0.2075 \\ \hline
-            \textbf{Positive} & 0.1633 & 0.2946 \\ \hline
-            \textbf{Negative} & 0.2613 & 0.1618 \\ \hline
-            \textbf{Active} & 0.1771 & 0.3347 \\ \hline
-            \textbf{Inactive} & 0.3000 & 0.1776 \\ \hline
-        \end{tabular}
-       \caption{Cifar10 CNN}
-    \end{subtable}
-    \hfill
-    \begin{subtable}{0.45\textwidth}
-        \centering
-        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
-            \hline
-            & \textbf{Black} & \textbf{White}\\ \hline
-            \textbf{Original} & 0.2131 & 0.2178 \\ \hline
-            \textbf{Positive} & 0.1327 & 0.2529 \\ \hline
-            \textbf{Negative} & 0.2176 & 0.1432 \\ \hline
-            \textbf{Active} & 0.1357 & 0.2931 \\ \hline
-            \textbf{Inactive} & 0.2577 & 0.1474 \\ \hline
-        \end{tabular}
-        \caption{Cifar10 Resnet18}
-     \end{subtable}
-     \hfill
-     \begin{subtable}[h]{0.45\textwidth}
-        \centering
-        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
-            \hline
-            \textbf{} & \textbf{Black} & \textbf{White}\\ \hline
-            \textbf{Original} & 0.2234 & 0.2075 \\ \hline
-            \textbf{Positive} & 0.1633 & 0.2946 \\ \hline
-            \textbf{Negative} & 0.2613 & 0.1618 \\ \hline
-            \textbf{Active} & 0.1771 & 0.3347 \\ \hline
-            \textbf{Inactive} & 0.3000 & 0.1776 \\ \hline
-        \end{tabular}
-       \caption{Imagenette CNN}
-    \end{subtable}
-    \hfill
-    \begin{subtable}[h]{0.45\textwidth}
-        \centering
-        \begin{tabular}{|L{0.35\linewidth}|M{0.2\linewidth}|M{0.2\linewidth}|}
-            \hline
-            \textbf{} & \textbf{Black} & \textbf{White}\\ \hline
-            \textbf{Original} & 0.2131 & 0.2178 \\ \hline
-            \textbf{Positive} & 0.1327 & 0.2529 \\ \hline
-            \textbf{Negative} & 0.2176 & 0.1432 \\ \hline
-            \textbf{Active} & 0.1357 & 0.2931 \\ \hline
-            \textbf{Inactive} & 0.2577 & 0.1474 \\ \hline
-        \end{tabular}
-        \caption{Imagenette Resnet18}
-     \end{subtable}
-     \caption{AUC Saliency Maps Deletions}
-     \label{tab:auc saliency maps deletions}
+\begin{table}[t]
+  \centering
+  \small
+  \caption{AUC saliency maps deletions.}
+  \label{tab:auc saliency maps deletions}
+  \begin{tabular*}{\textwidth}{L{2cm} @{\extracolsep{\fill}} *{8}{c}}
+    \toprule
+    {} & \multicolumn{4}{c}{CIFAR-10} & \multicolumn{4}{c}{Imagenette} \\
+    \cline{2-5} \cline{6-9}
+    {} & \multicolumn{2}{c}{CNN} & \multicolumn{2}{c}{ResNet-18} & \multicolumn{2}{c}{CNN} & \multicolumn{2}{c}{ResNet-18}\\  
+    \cline{2-3} \cline{4-5} \cline{6-7} \cline{8-9}
+    {} & Black & White & Black & White & Black & White & Black & White \\
+    \midrule
+    Original & 0.2234 & 0.2075 & 0.2131 & 0.2178 & 0.2234 & 0.2075 & 0.2131 & 0.2178 \\
+    Positive & 0.1633 & 0.2946 & 0.1327 & 0.2529 & 0.1633 & 0.2946 & 0.1327 & 0.2529 \\
+    Negative & 0.2613 & 0.1618 & 0.2176 & 0.1432 & 0.2613 & 0.1618 & 0.2176 & 0.1432 \\ 
+    Active   & 0.1771 & 0.3347 & 0.1357 & 0.2931 & 0.1771 & 0.3347 & 0.1357 & 0.2931 \\ 
+    Inactive & 0.3000 & 0.1776 & 0.2577 & 0.1474 & 0.3000 & 0.1776 & 0.2577 & 0.1474 \\
+    \bottomrule
+  \end{tabular*}
 \end{table}
 
 It is true that these metrics are still not perfect, since the value used for the deletion are the extreme values, and pixels that may improve the classification by being brighter or darker, but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value since any pixel can be darker and brighter than them, respectively. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
 
-
-\section{Conclusions and Future Research}
+\section{Conclusion and future work}
 \label{sec:conclusions and future research}
-To sum up, in this paper it has been shown that there is more information hidden in the gradients, both in the sign of the gradients and in the gradients of other classes. This paper is the first study that takes into account the sign and the other classes in the explainability, which seem to be crucial for extracting all the information contained in Saliency Maps. Therefore, it is not necessary to create complicated techniques to create a sharper visualization that shows what the model is looking when it is classifying. Moreover, this can be the starting point of a reformulation of all saliency variants, since it can produce improvements in all the techniques that are based on the gradients. However, this is out of the scope of this article.
+To sum up, in this paper it has been shown that there is more information hidden in the gradients, both in the sign of the gradients and in the gradients of other classes. This paper is the first study that takes into account the sign and the other classes in the explainability, which seem to be crucial for extracting all the information contained in saliency maps. Therefore, it is not necessary to create complicated techniques to create a sharper visualization that shows what the model is looking when it is classifying. Moreover, this can be the starting point of a reformulation of all saliency variants, since it can produce improvements in all the techniques that are based on the gradients. However, this is out of the scope of this article.
 
 Another contribution worth of mentioning is that taking into account the sign or the other classes allows comparing different techniques with the proposed metric, black-deletion and white-deletion. These metrics are the first benchmark that introduces an alteration knowing its meaning, instead of introducing an unknown bias. Therefore, they can also be used to compare more faithfully which are the best saliency techniques. We leave these for future research.
 
 
 \bibliographystyle{elsarticle-num} 
-\bibliography{cas-refs}
+{\small\bibliography{cas-refs}}
 
 \appendix
 
-\section{Signed Saliency Map Examples}
+\section{Signed saliency map examples}
 \label{sec:signed saliency map examples}
 In this appendix the examples for each technique will be showed for all the combinations:
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/0.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/0.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/0.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/0.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/0.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/0.png}
-        \caption{inactive}
-    \end{subfigure}
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/1.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/1.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/2.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/2.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/3.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/3.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/3.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/3.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/3.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/3.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/4.png}
-    \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/4.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/4.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/4.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/4.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/4.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps CNN Cifar10 images 1-5}
-\end{figure}
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/5.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/5.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/5.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/5.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/5.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/5.png}
-        \caption{inactive}
-    \end{subfigure}\\
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/6.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/6.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/6.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/6.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/6.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/6.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/7.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/7.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/7.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/7.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/7.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/7.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/8.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/8.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/8.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/8.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/8.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/8.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/images/9.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/saliency_map/9.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/positive_saliency_map/9.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/negative_saliency_map/9.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/active_saliency_map/9.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/9.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps CNN Cifar10 images 6-10}
+\begin{figure}[p]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.25}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/0.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/0.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/3.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/3.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/4.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/4.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/5.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/5.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/6.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/6.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/7.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/7.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/8.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/8.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/9.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/9.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps CNN CIFAR-10.}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/0.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/0.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/0.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/0.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/0.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/0.png}
-        \caption{inactive}
-    \end{subfigure}
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/1.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/1.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/1.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/1.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/1.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/1.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/2.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/2.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/2.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/2.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/2.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/2.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/3.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/3.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/3.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/3.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/3.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/3.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/4.png}
-    \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/4.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/4.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/4.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/4.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/4.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps Resnet18 Cifar10 images 1-5}
-\end{figure}
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/5.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/5.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/5.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/5.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/5.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/5.png}
-        \caption{inactive}
-    \end{subfigure}\\
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/6.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/6.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/6.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/6.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/6.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/6.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/7.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/7.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/7.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/7.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/7.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/7.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/8.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/8.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/8.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/8.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/8.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/8.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/images/9.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/saliency_map/9.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/9.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/9.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/active_saliency_map/9.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/9.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps Resnet18 Cifar10 images 6-10}
+\begin{figure}[p]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.25}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/0.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/0.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/2.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/3.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/3.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/4.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/4.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/5.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/5.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/6.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/6.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/7.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/7.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/8.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/8.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/9.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/9.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps ResNet18 CIFAR-10.}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/0.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/0.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/0.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/0.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/0.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/0.png}
-        \caption{inactive}
-    \end{subfigure}
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/1.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/1.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/1.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/1.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/1.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/1.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/2.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/2.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/2.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/2.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/2.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/2.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/3.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/3.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/3.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/3.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/3.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/3.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/4.png}
-    \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/4.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/4.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/4.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/4.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/4.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps CNN Imagenette images 1-5}
-\end{figure}
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/5.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/5.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/5.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/5.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/5.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/5.png}
-        \caption{inactive}
-    \end{subfigure}\\
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/6.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/6.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/6.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/6.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/6.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/6.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/7.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/7.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/7.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/7.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/7.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/7.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/8.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/8.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/8.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/8.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/8.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/8.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/images/9.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/saliency_map/9.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/positive_saliency_map/9.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/negative_saliency_map/9.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/active_saliency_map/9.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/9.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps CNN Imagenette images 6-10}
+\begin{figure}[p]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.25}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/0.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/0.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/2.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/3.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/3.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/4.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/4.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/5.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/5.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/6.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/6.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/7.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/7.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/8.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/8.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/9.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/9.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps CNN Imagenette.}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/0.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/0.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/0.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/0.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/0.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/0.png}
-        \caption{inactive}
-    \end{subfigure}
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/1.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/2.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/3.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/3.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/3.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/3.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/3.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/3.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/4.png}
-    \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/4.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/4.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/4.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/4.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/4.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps Resnet18 Imagenette images 1-5}
+\begin{figure}[p]
+  \centering
+  \footnotesize
+  \newcommand{\scale}{0.25}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{cccccc}
+  Image & Original & Positive & Negative & Active & Inactive \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/0.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/0.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/3.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/3.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/3.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/4.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/4.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/4.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/5.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/5.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/5.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/6.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/6.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/6.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/7.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/7.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/7.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/8.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/8.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/8.png} \\
+  
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/9.png} &
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/9.png} & 
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/9.png} \\
+  \end{tabular}
+  \caption{Comparison saliency maps ResNet18 Imagenette.}
 \end{figure}
-\begin{figure}
-    \centering
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/5.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/5.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/5.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/5.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/5.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/5.png}
-        \caption{inactive}
-    \end{subfigure}\\
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/6.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/6.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/6.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/6.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/6.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/6.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/7.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/7.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/7.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/7.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/7.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/7.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/8.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/8.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/8.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/8.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/8.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/8.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/images/9.png}
-        \caption{image}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/saliency_map/9.png}
-        \caption{original}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/9.png}
-        \caption{positive}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/9.png}
-        \caption{negative}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/active_saliency_map/9.png}
-        \caption{active}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.14\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/9.png}
-        \caption{inactive}
-    \end{subfigure}
-    \hfill
-    \caption{Comparison Saliency Maps Resnet18 Imagenette images 6-10}
-\end{figure}
-
 
 %% If you have bibdatabase file and want bibtex to generate the
 %% bibitems, please use
