@@ -61,6 +61,7 @@
 
 \usepackage{tikz}
 \usepackage{adjustbox}
+\usepackage{amsfonts} 
 
 \newsavebox{\mysavebox}
 
@@ -130,7 +131,6 @@
 
 \author[inst1]{Oscar Llorente\corref{cor1}}
 \ead{oscar.llorente.gonzalez@ericsson.com}
-\cortext[cor1]{Corresponding author}
 
 \affiliation[inst1]{organization={BMAS SA NDO SW R\&D Unit B, Ericsson},
             addressline={Retama Ed 1 Torre Suecia}, 
@@ -197,19 +197,26 @@ Saliency maps were introduced first in~\cite{Simonyan2014} to explain the classi
 
 \begin{equation}
     \label{eq: cnn output}
-    \text{class}(I) = \argmax_{c \in C}S_c(I),
+    \hat{c} = \argmax_{c \in C}S_c(\boldsymbol{I}),
 \end{equation}
 
 \noindent
-being $I$ the input image, $C$ the set of all possible classes and $S_c$ the classification score. Then, the original saliency map method is expressed as:
+being $\boldsymbol{I}$ the input image, $C$ the set of all possible classes and $S_c$ the classification score for a certain class $c$. Since an usually an image is expressed in rgb format is important to note that $\boldsymbol{I} \in \mathbb{R}^{\text{channels}\, x\, \text{height}\, x\, \text{width}}$. Then, the original saliency map method is expressed as:
 
 \begin{equation}
-    \label{eq: saliency map}
-    M_c(I) = \max_{channel} \bigg |\frac{\partial S_c}{\partial I} \bigg |
+    \label{eq: 3d saliency map}
+    \boldsymbol{Q} = \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}},
 \end{equation}
 
 \noindent
-According to~\cite{Simonyan2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
+where $\boldsymbol{Q}$ is the 3D map created with the Saliency Map technique and $S_{\hat{c}}$ is the score output from the predicted class $\hat{c}$. Since the objective is to construct a 2D map, in \cite{Simonyan2014} to a reduction function over the channels dimension is computed:
+
+\begin{equation}
+    \label{eq: 3d saliency map}
+    \boldsymbol{M}_{i\, j} = \max_{k} \boldsymbol{Q}_{k, i, j},
+\end{equation}
+
+being $\boldsymbol{M}$ the final 2D map generated from the Saliency Map. According to~\cite{Simonyan2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
 
 However, the original saliency maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{Springenberg2015, Sundararajan2017, Shrikumar2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{Adebayo2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
 
@@ -232,15 +239,25 @@ Regarding the reason for not using the raw values exposed in~\cite{Smilkov2017},
     \item Positive saliency maps:
     
     \begin{equation}
-        M_c(I) = \max_{channel} \text{ReLU} \bigg (\frac{\partial S_c}{\partial I} \bigg )
-        \label{eq: positive saliency map}
+        \boldsymbol{Q} = \text{ReLU} \bigg (\frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}} \bigg ),
+        \label{eq: 2d positive saliency map}
+    \end{equation}
+
+    \begin{equation}
+        \boldsymbol{M}_{i\, j} = \max_{k} \boldsymbol{Q}_{k, i, j},
+        \label{eq: 3d positive saliency map}
     \end{equation}
 
     \item Negative saliency maps:
     
     \begin{equation}
-        M_c(I) = \max_{channel} \text{ReLU} \bigg (-\frac{\partial S_c}{\partial I} \bigg )
-        \label{eq: negative saliency map}
+        \boldsymbol{Q} = \text{ReLU} \bigg (-\frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}} \bigg ),
+        \label{eq: 2d negative saliency map}
+    \end{equation}
+
+    \begin{equation}
+        \boldsymbol{M}_{i\, j} = \max_{k} \boldsymbol{Q}_{k, i, j},
+        \label{eq: 3d negative saliency map}
     \end{equation}
 
 \end{itemize}
@@ -264,17 +281,31 @@ Therefore, by comparing the saliency maps for the different classes the informat
     \item Active saliency map (increasing them improves the classification):
     
     \begin{equation}
-        \label{eq: active saliency map}
-        \hat{M}_c(I) = \max_{channel} M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c > \frac{\partial S_q}{\partial I}
+        \begin{cases}
+            \boldsymbol{Q}_{k\, i\, j} = \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}},& \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} > \frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \,\forall{c \in (C-\hat{c})}\\
+            \boldsymbol{Q}_{k\, i\, j} = 0,& \text{otherwise}
+        \end{cases}
+        \label{eq: 2d active saliency map}
     \end{equation}
 
-    being $M_c$ the saliency map (original technique) for the predicted class $c$.
+    \begin{equation}
+        \boldsymbol{M}_{i\, j} = \max_{k} \boldsymbol{Q}_{k, i, j},
+        \label{eq: 3d active saliency map}
+    \end{equation}
 
     \item Inactive saliency map (decreasing them improves the classification):
     
     \begin{equation}
-        \label{eq: inactive saliency map}
-        \hat{M}_c(I) = \max_{channel} M_c \mathlarger{\mathlarger{\prod}}_{q \in (C-c)}M_c < \frac{\partial S_q}{\partial I}
+        \begin{cases}
+            \boldsymbol{Q}_{k\, i\, j} = \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}},& \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} < \frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \,\forall{c \in (C-\hat{c})}\\
+            \boldsymbol{Q}_{k\, i\, j} = 0,& \text{otherwise}
+        \end{cases}
+        \label{eq: 2d inactive saliency map}
+    \end{equation}
+
+    \begin{equation}
+        \boldsymbol{M}_{i\, j} = \max_{k} \boldsymbol{Q}_{k, i, j},
+        \label{eq: 3d inactive saliency map}
     \end{equation}
 
 \end{itemize}
@@ -309,18 +340,18 @@ In this section the new proposed techniques will be evaluated qualitatively and 
   Image & Original & Positive & Negative & Active & Inactive \\
   
   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png} \\
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/positive_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/negative_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/active_saliency_map/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/inactive_saliency_map/1.png} \\
   
   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png} \\
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/inactive_saliency_map/2.png} \\
   \end{tabular}
   \caption{Comparison saliency maps CNN CIFAR-10.}
   \label{fig: comparison saliency maps cnn cifar10}
@@ -334,19 +365,19 @@ In this section the new proposed techniques will be evaluated qualitatively and 
   \begin{tabular}{cccccc}
   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png} \\
+  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/0.png} &
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/positive_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/negative_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/active_saliency_map/0.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/inactive_saliency_map/0.png} \\
   
   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/positive_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/negative_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/active_saliency_map/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
   \end{tabular}
   \caption{Comparison saliency maps ResNet-18 Imagenette.}
   \label{fig: comparison saliency maps resnet18 imagenette}
