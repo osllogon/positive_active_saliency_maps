@@ -24,14 +24,14 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 # variables
-dataset = 'cifar10'
+dataset = 'imagenette'
 
 
 if __name__ == '__main__':
     # hyperparameters
     lr = 1e-3
-    model_type = 'cnn'
-    pretrained = False
+    model_type = 'resnet18'
+    pretrained = True
     epochs = 50
 
     # check device

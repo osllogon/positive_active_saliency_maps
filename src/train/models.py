@@ -165,7 +165,7 @@ class CNNModel(torch.nn.Module):
             torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         ]
 
-        # add 3 SuperTuxBlocks to module_list
+        # add 3 Blocks to module_list
         last_layer = 32
         for layer in layers:
             module_list.append(Block(last_layer, layer, stride=2))
