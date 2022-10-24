@@ -6,10 +6,10 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from tqdm.auto import tqdm
 
 # own modules
 from src.train.utils import load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
-from src.explain.benchmarks import deletion
 from src.explain.saliency_maps import SaliencyMap, PositiveSaliencyMap, NegativeSaliencyMap, ActiveSaliencyMap, \
     InactiveSaliencyMap
 
@@ -31,7 +31,7 @@ PERCENTAGES = [0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
 def main() -> None:
     # variables
     dataset = 'imagenette'
-    model_type = 'resnet18'
+    model_type = 'convnext'
     pretrained = True
     
     # check device
@@ -47,7 +47,7 @@ def main() -> None:
                 preprocess_imagenette(f'{DATA_PATH[dataset]}/original_data', f'{DATA_PATH[dataset]}/postprocess_data')
 
             # load data
-            train_data, val_data = load_imagenette_data(f'{DATA_PATH[dataset]}/postprocess_data', batch_size=128)
+            train_data, val_data = load_imagenette_data(f'{DATA_PATH[dataset]}/postprocess_data', batch_size=64)
             
         else:
             raise ValueError('Invdalid dataset value')
@@ -55,6 +55,9 @@ def main() -> None:
         # load model
         model = torch.load(f'./models/{dataset}/{model_type}_pretrained_{pretrained}.pt')
         model.eval()
+        
+        # define progress bar
+        progress_bar = tqdm(range((len(train_data) + len(val_data))*len(METHODS)*len(PERCENTAGES)))
         
         for loader_name, loader in {'train': train_data, 'val': val_data}.items():
             i = 0
@@ -108,6 +111,9 @@ def main() -> None:
 
                             torch.save(outputs, f'{DATA_PATH[dataset]}/saved/{model_type}_{pretrained}/'
                                     f'{loader_name}/{method_name}/{subs_value}/{percentage}/outputs/{i}.pt')
+                        
+                        # update progress
+                        progress_bar.update()
                 
                 # increment batch index
                 i += 1
@@ -116,6 +122,16 @@ def main() -> None:
         for loader_name in ['train', 'val']:
             results = {}
             for method_name, method in METHODS.items():
+                
+                # ignore negative and actives for 0 subs
+                if subs_value == 0 and (method_name == 'negative_saliency_map' or method_name == \
+                    'inactive_saliency_map'):
+                    continue
+                
+                # ignore positive and actives for 1 subs
+                if subs_value == 1 and (method_name == 'positive_saliency_map' or method_name == 'active_saliency_map'):
+                    continue
+                
                 results[method_name] = []
                 last_percentage = None
                 auc = 0

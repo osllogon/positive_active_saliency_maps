@@ -224,7 +224,7 @@ def set_seed(seed: int) -> None:
 
     # set seed and deterministic algorithms for torch
     torch.manual_seed(seed)
-    torch.use_deterministic_algorithms(True)
+    torch.use_deterministic_algorithms(True, warn_only=True)
 
     # Ensure all operations are deterministic on GPU
     torch.cuda.manual_seed(seed)

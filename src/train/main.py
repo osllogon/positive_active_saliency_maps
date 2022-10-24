@@ -3,13 +3,12 @@ import torch
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
-
 # other libraries
 import os
 from tqdm.auto import tqdm
 
 # own modules
-from src.train.models import Resnet18, CNNModel
+from src.train.models import Resnet18, AlexNet, DenseNet121, ConvNext, CNNModel
 from src.train.utils import accuracy, load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
 
 # set device
@@ -27,11 +26,11 @@ NUMBER_OF_CLASSES = 10
 dataset = 'imagenette'
 
 
-if __name__ == '__main__':
+def main() -> None:
     # hyperparameters
     lr = 1e-3
     model_type = 'resnet18'
-    pretrained = True
+    pretrained = False
     epochs = 50
 
     # check device
@@ -45,20 +44,24 @@ if __name__ == '__main__':
             preprocess_imagenette(DATA_PATH[dataset], POSTPROCESS_DATA_PATH[dataset])
 
         # load data
-        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=128)
+        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=64)
         
     else:
         raise ValueError('Invdalid dataset value')
 
     # define model name and tensorboard writer
-    name = f'{model_type}_pretrained_{pretrained}_lr_{lr}_epochs_{epochs}'
+    name = f'{model_type}_pretrained_{pretrained}'
     writer = SummaryWriter(f'./runs/{dataset}/{name}')
 
     # define model
     if model_type == 'resnet18':
         model = Resnet18(NUMBER_OF_CLASSES, pretrained).to(device)
+    elif model_type == 'convnext':
+        model = ConvNext(NUMBER_OF_CLASSES, pretrained).to(device)
     elif model_type == 'cnn':
         model = CNNModel(output_channels=NUMBER_OF_CLASSES).to(device)
+    else:
+        raise ValueError('Invalid model type')
 
     # select which layers to activate if pretrained model is loaded
     if pretrained:
@@ -67,20 +70,28 @@ if __name__ == '__main__':
             param.requires_grad_(False)
 
         # activate classifier and first conv layer if color space is different than rgb
-        if model_type == 'resnet18':
-            model.model.fc.requires_grad_(True)
+        if model_type == 'resnet18' or model_type == 'convnext':
+            model.classifier.requires_grad_(True)
+        
+        # define optimizer
+        optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=lr)
+        
     else:
         # activate all layers
         for param in model.parameters():
             param.requires_grad_(True)
+        
+        # define optimizer
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     # define loss and optimizer
     loss = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
-
+    
     # define progress bar
     progress_bar = tqdm(range(epochs*(len(train_data) + len(val_data))))
 
+    # epochs loop
     for epoch in range(epochs):
         # train mode
         model.train()
@@ -107,7 +118,7 @@ if __name__ == '__main__':
             # add metrics to vectors
             losses.append(loss_value.item())
             accuracies.append(accuracy(outputs, labels))
-
+            
             # progress bar step
             progress_bar.update()
 
@@ -135,7 +146,7 @@ if __name__ == '__main__':
                 # add metrics to vectors
                 losses.append(loss_value.item())
                 accuracies.append(accuracy(outputs, labels))
-
+                
                 # progress bar step
                 progress_bar.update()
 
@@ -146,3 +157,7 @@ if __name__ == '__main__':
     if not os.path.exists(f'./models/{dataset}'):
         os.makedirs(f'./models/{dataset}')
     torch.save(model, f'./models/{dataset}/{name}.pt')
+    
+    
+if __name__ == '__main__':
+    main()
