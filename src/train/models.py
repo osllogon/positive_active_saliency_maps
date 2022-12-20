@@ -146,7 +146,7 @@ class ConvNext(torch.nn.Module):
 
     def __init__(self, output_channels: int = 10, pretrained: bool = True):
         """
-        Constructor of Resnet18 class
+        Constructor of ConvNext class
         
         Parameters
         ----------

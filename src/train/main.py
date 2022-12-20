@@ -8,7 +8,7 @@ import os
 from tqdm.auto import tqdm
 
 # own modules
-from src.train.models import Resnet18, AlexNet, DenseNet121, ConvNext, CNNModel
+from src.train.models import Resnet18, ConvNext, CNNModel
 from src.train.utils import accuracy, load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
 
 # set device
@@ -23,13 +23,13 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 # variables
-dataset = 'imagenette'
+dataset = 'cifar10'
 
 
 def main() -> None:
     # hyperparameters
     lr = 1e-3
-    model_type = 'resnet18'
+    model_type = 'cnn'
     pretrained = False
     epochs = 50
 
@@ -44,7 +44,7 @@ def main() -> None:
             preprocess_imagenette(DATA_PATH[dataset], POSTPROCESS_DATA_PATH[dataset])
 
         # load data
-        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=64)
+        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=128)
         
     else:
         raise ValueError('Invdalid dataset value')
