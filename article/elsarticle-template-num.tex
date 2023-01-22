@@ -184,16 +184,16 @@ eXplainable Artificial Intelligence (XAI) \sep Convolutional Neural Networks \se
 %% main text
 \section{Introduction}
 \label{sec:introduction}
-Since the introduction of AlexNet~\cite{Krizhevsky2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
+Since the introduction of AlexNet~\cite{krizhevskyImageNetClassificationDeep2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
 
 \begin{itemize}
     \item Building more interpretable models.
     \item Developing techniques to explain the state of the art architectures.
 \end{itemize}
 
-There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{Singh2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{LeCun1998}. To explain these other models  several techniques have been developed during the last years. One of the most used types are saliency maps.
+There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{singhThinkPositiveInterpretable2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{lecunConvolutionalNetworksImages}. To explain these other models  several techniques have been developed during the last years. One of the most used types are saliency maps.
 
-Saliency maps were introduced first in~\cite{Simonyan2014} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
+Saliency maps were introduced first in~\cite{simonyanDeepConvolutionalNetworks2014} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
 
 \begin{equation}
     \label{eq: cnn output}
@@ -204,22 +204,22 @@ Saliency maps were introduced first in~\cite{Simonyan2014} to explain the classi
 being $\boldsymbol{I}$ the input image, $C$ the set of all possible classes and $S_c$ the classification score for a certain class $c$. Since an usually an image is expressed in rgb format is important to note that $\boldsymbol{I} \in \mathbb{R}^{\text{channels}\, x\, \text{height}\, x\, \text{width}}$. Then, the original saliency map method is expressed as:
 
 \noindent
-where $\boldsymbol{Q}$ is the 3D map created with the Saliency Map technique and $S_{\hat{c}}$ is the score output from the predicted class $\hat{c}$. Since the objective is to construct a 2D map, in \cite{Simonyan2014} to a reduction function over the channels dimension is computed:
+where $\boldsymbol{Q}$ is the 3D map created with the Saliency Map technique and $S_{\hat{c}}$ is the score output from the predicted class $\hat{c}$. Since the objective is to construct a 2D map, in \cite{simonyanDeepConvolutionalNetworks2014} to a reduction function over the channels dimension is computed:
 
 \begin{equation}
     \label{eq: 3d saliency map}
     \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ),
 \end{equation}
 
-being $\boldsymbol{M}$ the final 2D map generated from the Saliency Map. According to~\cite{Simonyan2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
+being $\boldsymbol{M}$ the final 2D map generated from the Saliency Map. According to~\cite{simonyanDeepConvolutionalNetworks2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. Then, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
 
-However, the original saliency maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{Springenberg2015, Sundararajan2017, Shrikumar2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{Adebayo2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
+However, the original saliency maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{springenbergStrivingSimplicityAll2015a, sundararajanAxiomaticAttributionDeep2017, shrikumarNotJustBlack2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{adebayoSanityChecksSaliency2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
 
 Nevertheless, there is no need of using these techniques to improve the ones from the original saliency maps: more knowledge can be unlocked from the gradients of the neural network without further modifications. First, the sign of the gradients has not been studied in any paper. This sign can have a meaning and a significant impact in the neural network behavior that researchers are trying to understand. Moreover, the type of problem being studied is a multi-class classification problem, and a visualization that tries to explain that, should take into account all these classes and not only the one that is being predicted. In other words, the magnitude of the gradients can have a different meaning depending on whether it is greater or smaller than the gradients for other classes. 
 
 \section{The sign in saliency maps}
 \label{sec:the sign in saliency maps}
-As pointed out in the last section, there is not any research about the meaning or impact of the sign in saliency maps. The only article that discuss briefly this aspect is~\cite{Smilkov2017}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
+As pointed out in the last section, there is not any research about the meaning or impact of the sign in saliency maps. The only article that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
 
 However, by taking the absolute value of all the pixels in the saliency map, information can be lost. It is not only valuable knowing which pixels are important but also their meaning. For example, it would be significant, for the explainability field, having a technique that can indicate which zones of the image should be brighter to improve the classification and which ones should be darker. This is in fact the information that the sign can provide. Moreover, if both sets of pixels are combined in the same image without any distinctions between them, they can produce worse explanations. It can seem as if the model is not able to distinguish between zones that should be brighter and others that should be darker, as for example an object in front of a black background. Based on this, two sets of pixels can be distinguished in the image:
 
@@ -228,7 +228,7 @@ However, by taking the absolute value of all the pixels in the saliency map, inf
     \item Pixels that by decreasing their value the classification of the model improves since they have a negative value in the saliency map (negative gradient).
 \end{itemize}
 
-Regarding the reason for not using the raw values exposed in~\cite{Smilkov2017}, it can be due to a high number of 0 values in the saliency map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
+Regarding the reason for not using the raw values exposed in~\cite{smilkovSmoothGradRemovingNoise}, it can be due to a high number of 0 values in the saliency map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
 
 \begin{itemize}
     \item Positive saliency maps:
@@ -289,7 +289,7 @@ Therefore, by comparing the saliency maps for the different classes the informat
 
 \section{Experiments}
 \label{sec:experiments}
-In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, {CIFAR-10}~\cite{DatasetCIFAR} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of ImageNet. It is used this subset instead of the original ImageNet due to computing restrictions of hardware. Then, two models are trained for each dataset. The first is a CNN model based in a max-pooling, several layers for CNNs, an average-pooling and a final linear layer. The second one is the classical ResNet-18~\cite{He2016}. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
+In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, {CIFAR-10}~\cite{CIFAR10CIFAR100Datasets} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of ImageNet. It is used this subset instead of the original ImageNet due to computing restrictions of hardware. Then, two models are trained for each dataset. The first is a CNN model based in a max-pooling, several layers for CNNs, an average-pooling and a final linear layer. The second one is the classical ResNet-18~\cite{heDeepResidualLearning2016}. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
 
 \begin{table}[ht]
   \centering
@@ -302,6 +302,7 @@ In this section the new proposed techniques will be evaluated qualitatively and 
     \midrule
     Basic CNN & 0.6307 & 0.6205 \\
     ResNet-18  & 0.7569 & 0.8357 \\
+    ConvNext & - & 0.9932 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -311,24 +312,24 @@ In this section the new proposed techniques will be evaluated qualitatively and 
 \begin{figure}[ht]
   \centering
   \footnotesize
-  \newcommand{\scale}{0.35}
+  \newcommand{\scale}{0.28}
   \setlength{\tabcolsep}{2pt}
   \begin{tabular}{cccccc}
   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/inactive_saliency_map/1.png} \\
+  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/cifar10/cnn/inactive_saliency_map/2.png} \\
+  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/2.png} \\
   \end{tabular}
   \caption{Comparison saliency maps CNN CIFAR-10.}
   \label{fig: comparison saliency maps cnn cifar10}
@@ -337,30 +338,30 @@ In this section the new proposed techniques will be evaluated qualitatively and 
 \begin{figure}[ht]
   \centering
   \footnotesize
-  \newcommand{\scale}{0.35}
+  \newcommand{\scale}{0.28}
   \setlength{\tabcolsep}{2pt}
   \begin{tabular}{cccccc}
   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/0.png} &
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/positive_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/negative_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/active_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/inactive_saliency_map/0.png} \\
+  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/1.png} &
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/1.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/filtered_examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
+  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/2.png} &
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/2.png} & 
+  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/2.png} \\
   \end{tabular}
   \caption{Comparison saliency maps ResNet-18 Imagenette.}
   \label{fig: comparison saliency maps resnet18 imagenette}
 \end{figure}
 
-Following the same approach that can be found in the literature of saliency maps, first the techniques will be visually evaluated. In several papers, as in \cite{Simonyan2014}, \cite{Springenberg2015}, \cite{Smilkov2017} or \cite{Sundararajan2017}, the different techniques were compared based on a visual inspection. 
+Following the same approach that can be found in the literature of saliency maps, first the techniques will be visually evaluated. In several papers, as in \cite{simonyanDeepConvolutionalNetworks2014}, \cite{springenbergStrivingSimplicityAll2015a}, \cite{smilkovSmoothGradRemovingNoise} or \cite{sundararajanAxiomaticAttributionDeep2017}, the different techniques were compared based on a visual inspection. 
 
 One trend in the mentioned article is to just show some examples of the visualization to make the comparison. However, in none of them is explained how these examples are obtained. Therefore, it could be the case that the visualization is better for a certain class or example. To solve this problem in this paper a correct example for each class from the test is selected. These images are shown in~\ref{sec:signed saliency map examples}. Here, two examples can be observed in Figure~\ref{fig: comparison saliency maps cnn cifar10} and Figure~\ref{fig: comparison saliency maps resnet18 imagenette}.
 
@@ -368,29 +369,33 @@ From the comparison it can be appreciated that the proposed techniques reduce th
 
 \subsection{Quantitative evaluation}
 
-Even though historically the evaluation of saliency maps has been qualitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{Petsiuk2018},~\cite{Hooker2019} or~\cite{Ancona2018}. While in~\cite{Ancona2018} it is studied a desirable property of explainability techniques, in~\cite{Petsiuk2018} and~\cite{Hooker2019} the objective is to formulate a metric that could indicate which technique is better. 
+Even though historically the evaluation of saliency maps has been qualitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{petsiukRISERandomizedInput},~\cite{hookerBenchmarkInterpretabilityMethods2019} or~\cite{anconaBetterUnderstandingGradientbased2018}. While in~\cite{anconaBetterUnderstandingGradientbased2018} it is studied a desirable property of explainability techniques, in~\cite{petsiukRISERandomizedInput} and~\cite{hookerBenchmarkInterpretabilityMethods2019} the objective is to formulate a metric that could indicate which technique is better. 
 
-Specifically,~\cite{Petsiuk2018} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
+Specifically,~\cite{petsiukRISERandomizedInput} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
 
-In~\cite{Hooker2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set where the explainability technique was being measured. However, in the retraining, the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned because the information used by the model to classify can be different now.
+In~\cite{hookerBenchmarkInterpretabilityMethods2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set where the explainability technique was being measured. However, in the retraining, the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned because the information used by the model to classify can be different now.
 
-\begin{figure}[t]
+\begin{figure}[p]
     \centering
-    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/cifar10_cnn.pdf}} \hfill
-    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/cifar10_resnet18.pdf}} \\
-    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/imagenette_cnn.pdf}} \hfill
-    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/black_deletion/imagenette_resnet18.pdf}} \\
+    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/0.pdf}} \hfill
+    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
+    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/0.pdf}} \hfill
+    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
+    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/0.pdf}} \hfill
+    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/0.pdf}} \\
     \caption{Black-Deletion Benchmark.}
     \label{fig: black-deletion benchmark}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[p]
     \centering
-    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/cifar10_cnn.pdf}} \hfill
-    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/cifar10_resnet18.pdf}} \\
-    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/imagenette_cnn.pdf}} \hfill
-    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/benchmarks/white_deletion/imagenette_resnet18.pdf}} \\
-    \caption{White-Deletion Benchmark}
+    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/1.pdf}} \hfill
+    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
+    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/1.pdf}} \hfill
+    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
+    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/1.pdf}} \hfill
+    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/1.pdf}} \\
+    \caption{White-Deletion Benchmark.}
     \label{fig: white-deletion benchmark}
 \end{figure}
 
@@ -403,25 +408,38 @@ In the graphs it can be seen that the behavior is the expected, meaning that the
 \begin{table}[t]
   \centering
   \small
-  \caption{AUC saliency maps deletions.}
-  \label{tab:auc saliency maps deletions}
+  \caption{AUC for black deletions in saliency maps.}
+  \label{tab:auc for black deletions in saliency maps}
   \begin{tabular*}{\textwidth}{L{2cm} @{\extracolsep{\fill}} *{8}{c}}
     \toprule
-    {} & \multicolumn{4}{c}{CIFAR-10} & \multicolumn{4}{c}{Imagenette} \\
-    \cline{2-5} \cline{6-9}
-    {} & \multicolumn{2}{c}{CNN} & \multicolumn{2}{c}{ResNet-18} & \multicolumn{2}{c}{CNN} & \multicolumn{2}{c}{ResNet-18}\\  
-    \cline{2-3} \cline{4-5} \cline{6-7} \cline{8-9}
-    {} & Black & White & Black & White & Black & White & Black & White \\
+    {} & \multicolumn{2}{c}{CIFAR-10} & \multicolumn{4}{c}{Imagenette} \\
+    \cline{2-3} \cline{4-7}
+    {} & CNN & ResNet-18 & CNN & ResNet-18 & ResNet-18 pre-trained & ConvNeXt\\  
     \midrule
-    Original & 0.2234 & 0.2075 & 0.2131 & 0.2178 & 0.2234 & 0.2075 & 0.2131 & 0.2178 \\
-    Positive & 0.1633 & 0.2946 & 0.1327 & 0.2529 & 0.1633 & 0.2946 & 0.1327 & 0.2529 \\
-    Negative & 0.2613 & 0.1618 & 0.2176 & 0.1432 & 0.2613 & 0.1618 & 0.2176 & 0.1432 \\ 
-    Active   & 0.1771 & 0.3347 & 0.1357 & 0.2931 & 0.1771 & 0.3347 & 0.1357 & 0.2931 \\ 
-    Inactive & 0.3000 & 0.1776 & 0.2577 & 0.1474 & 0.3000 & 0.1776 & 0.2577 & 0.1474 \\
+    Original & 0.23 & 0.23 & 0.24 & 0.26 & 0.28 & 0.49 \\
+    Positive & 0.14 & 0.11 & 0.12 & 0.14 & 0.21 & 0.37 \\
+    Active   & 0.15 & 0.11 & 0.16 & 0.14 & 0.24 & 0.39 \\ 
     \bottomrule
   \end{tabular*}
 \end{table}
 
+\begin{table}[t]
+  \centering
+  \small
+  \caption{AUC for white deletions in saliency maps.}
+  \label{tab:auc for white deletions in saliency maps}
+  \begin{tabular*}{\textwidth}{L{2cm} @{\extracolsep{\fill}} *{8}{c}}
+    \toprule
+    {} & \multicolumn{2}{c}{CIFAR-10} & \multicolumn{4}{c}{Imagenette} \\
+    \cline{2-3} \cline{4-7}
+    {} & CNN & ResNet-18 & CNN & ResNet-18 & ResNet-18 pre-trained & ConvNeXt\\  
+    \midrule
+    Original & 0.21 & 0.22 & 0.21 & 0.23 & 0.26 & 0.46 \\
+    Negative & 0.14 & 0.12 & 0.11 & 0.18 & 0.20 & 0.37 \\ 
+    Inactive & 0.15 & 0.12 & 0.14 & 0.16 & 0.23 & 0.42 \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
 It is true that these metrics are still not perfect, since the value used for the deletion are the extreme values, and pixels that may improve the classification by being brighter or darker, but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value since any pixel can be darker and brighter than them, respectively. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
 
 \section{Conclusion and future work}
@@ -440,329 +458,329 @@ Another contribution worth of mentioning is that taking into account the sign or
 \label{sec:signed saliency map examples}
 In this appendix the examples for each technique will be showed for all the combinations:
 
-\begin{figure}[p]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.25}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
+% \begin{figure}[p]
+%   \centering
+%   \footnotesize
+%   \newcommand{\scale}{0.25}
+%   \setlength{\tabcolsep}{2pt}
+%   \begin{tabular}{cccccc}
+%   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/0.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/0.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/0.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/0.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/1.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/2.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/2.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/3.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/3.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/3.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/3.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/4.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/4.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/4.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/4.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/5.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/5.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/5.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/5.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/6.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/6.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/6.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/6.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/7.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/7.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/7.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/7.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/8.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/8.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/8.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/8.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/9.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/9.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps CNN CIFAR-10.}
-\end{figure}
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/images/9.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/positive_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/negative_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/active_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/cnn/inactive_saliency_map/9.png} \\
+%   \end{tabular}
+%   \caption{Comparison saliency maps CNN CIFAR-10.}
+% \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.25}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
+% \begin{figure}[p]
+%   \centering
+%   \footnotesize
+%   \newcommand{\scale}{0.25}
+%   \setlength{\tabcolsep}{2pt}
+%   \begin{tabular}{cccccc}
+%   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/0.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/0.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/0.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/0.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/1.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/1.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/2.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/2.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/2.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/3.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/3.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/3.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/3.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/4.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/4.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/4.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/4.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/5.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/5.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/5.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/5.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/6.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/6.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/6.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/6.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/7.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/7.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/7.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/7.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/8.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/8.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/8.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/8.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/9.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/9.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps ResNet18 CIFAR-10.}
-\end{figure}
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/images/9.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/positive_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/negative_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/active_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/cifar10/resnet18/inactive_saliency_map/9.png} \\
+%   \end{tabular}
+%   \caption{Comparison saliency maps ResNet18 CIFAR-10.}
+% \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.25}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
+% \begin{figure}[p]
+%   \centering
+%   \footnotesize
+%   \newcommand{\scale}{0.25}
+%   \setlength{\tabcolsep}{2pt}
+%   \begin{tabular}{cccccc}
+%   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/0.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/0.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/0.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/0.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/1.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/1.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/2.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/2.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/2.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/3.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/3.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/3.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/3.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/4.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/4.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/4.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/4.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/5.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/5.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/5.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/5.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/6.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/6.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/6.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/6.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/7.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/7.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/7.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/7.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/8.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/8.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/8.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/8.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/9.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/9.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps CNN Imagenette.}
-\end{figure}
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/images/9.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/positive_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/negative_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/active_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/cnn/inactive_saliency_map/9.png} \\
+%   \end{tabular}
+%   \caption{Comparison saliency maps CNN Imagenette.}
+% \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.25}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
+% \begin{figure}[p]
+%   \centering
+%   \footnotesize
+%   \newcommand{\scale}{0.25}
+%   \setlength{\tabcolsep}{2pt}
+%   \begin{tabular}{cccccc}
+%   Image & Original & Positive & Negative & Active & Inactive \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/0.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/0.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/0.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/0.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/0.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/0.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/1.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/1.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/1.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/2.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/2.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/2.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/3.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/3.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/3.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/3.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/3.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/4.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/4.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/4.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/4.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/4.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/4.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/5.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/5.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/5.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/5.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/5.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/5.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/6.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/6.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/6.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/6.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/6.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/6.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/7.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/7.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/7.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/7.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/7.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/7.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/8.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/8.png} \\
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/8.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/8.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/8.png} \\
   
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/9.png} &
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/9.png} & 
-  \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/9.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps ResNet18 Imagenette.}
-\end{figure}
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/images/9.png} &
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/positive_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/negative_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/active_saliency_map/9.png} & 
+%   \includegraphics[scale=\scale]{../visualizations/examples/imagenette/resnet18/inactive_saliency_map/9.png} \\
+%   \end{tabular}
+%   \caption{Comparison saliency maps ResNet18 Imagenette.}
+% \end{figure}
 
 %% If you have bibdatabase file and want bibtex to generate the
 %% bibitems, please use

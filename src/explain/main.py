@@ -32,16 +32,16 @@ PERCENTAGES = [0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 def main() -> None:
     # variables
-    generate_examples = True
-    generate_graphs = False
+    generate_examples = False
+    generate_graphs = True
     
     # hyperparameters
-    dataset = 'imagenette'
-    model_type = 'cnn'
+    dataset = 'cifar10'
+    model_type = 'resnet18'
     pretrained = False
     
     # load model
-    model = torch.load(f'./models/{dataset}/{model_type}_pretrained_{pretrained}.pt')
+    model = torch.load(f'./models/{dataset}/{model_type}_pretrained_{pretrained}.pt').to(device)
     model.eval()
     
     # check device
