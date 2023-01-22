@@ -14,8 +14,9 @@ from src.train.utils import accuracy, load_cifar10_data, load_imagenette_data, p
 # set device
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-# set all seeds
+# set all seeds and set number of threads
 set_seed(42)
+torch.set_num_threads(8)
 
 # static variables
 DATA_PATH = {'cifar10': './data/cifar10', 'imagenette': './data/imagenette/original_data'}
@@ -23,7 +24,7 @@ POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postp
 NUMBER_OF_CLASSES = 10
 
 # variables
-dataset = 'cifar10'
+dataset = 'imagenette'
 
 
 def main() -> None:
@@ -37,17 +38,17 @@ def main() -> None:
     print(f'device: {device}')
     
     if dataset == 'cifar10':
-        train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=128)
+        train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=128, num_workers=4)
     elif dataset == 'imagenette':
         # preprocess step
         if not os.path.isdir(POSTPROCESS_DATA_PATH[dataset]):
             preprocess_imagenette(DATA_PATH[dataset], POSTPROCESS_DATA_PATH[dataset])
 
         # load data
-        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=128)
+        train_data, val_data = load_imagenette_data(POSTPROCESS_DATA_PATH[dataset], batch_size=128, num_workers=4)
         
     else:
-        raise ValueError('Invdalid dataset value')
+        raise ValueError('Invalid dataset value')
 
     # define model name and tensorboard writer
     name = f'{model_type}_pretrained_{pretrained}'
