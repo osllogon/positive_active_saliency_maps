@@ -26,6 +26,8 @@
 *.fdb_latexmk
 *.snm
 *.nav
+*.tmp
+*.bak
 
 # folders
 .vscode/
