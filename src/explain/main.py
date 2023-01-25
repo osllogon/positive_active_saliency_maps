@@ -36,9 +36,9 @@ def main() -> None:
     generate_graphs = True
     
     # hyperparameters
-    dataset = 'cifar10'
-    model_type = 'resnet18'
-    pretrained = False
+    dataset = 'imagenette'
+    model_type = 'convnext'
+    pretrained = True
     
     # load model
     model = torch.load(f'./models/{dataset}/{model_type}_pretrained_{pretrained}.pt').to(device)
@@ -311,16 +311,18 @@ def main() -> None:
                 # check dir
                 if not os.path.exists(f'visualizations/graphs/{dataset}/{model_type}_{pretrained}/{loader_name}'):
                     os.makedirs(f'visualizations/graphs/{dataset}/{model_type}_{pretrained}/{loader_name}')
+                    
+                legend = [result.replace('_', ' ') for result in results.keys()]
                         
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
                 plt.plot(PERCENTAGES, np.transpose(np.array(list(results.values()))), marker='o')
                 plt.xlabel('pixels deleted [%]')
-                plt.ylabel('fidelity')
+                plt.ylabel('allegiance')
                 ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
                 plt.ylim([0, 1])
                 plt.grid()
-                plt.legend(list(results.keys()))
+                plt.legend(legend)
                 plt.savefig(f'visualizations/graphs/{dataset}/{model_type}_{pretrained}/{loader_name}/{subs_value}.pdf', 
                             bbox_inches='tight', pad_inches=0, format='pdf')
                 plt.close()

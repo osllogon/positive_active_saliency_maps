@@ -285,7 +285,9 @@ Therefore, by comparing the saliency maps for the different classes the informat
 
 \end{itemize}
 
-Note that, this technique can be used to extract which parts of the images can improve a model, making the prediction of the correctly classified images more confident, and which parts of the images can make a model worse, making the prediction of misclassified examples more confident.
+Note that, both type of methods, positive and negative saliency maps, and active and inactive saliency maps, pursue the same purpose. Positive and active try to find the pixels that by being brighter, increase the confidence of the original classification. Analogously, negative and inactive try to find the pixels that by being darker, also increase the confidence of the original classification.
+
+Positive and negative take into account the sign, which is a significant improvement from the original saliency maps. Active and inactive can be seen as a step further, taking into account also the other classes. Even so, positive and negative can also provide information about which pixels increase the score of the predicted class, even though another score is increasing more. This information can also help the user understand how the class scores of the model works.
 
 \section{Experiments}
 \label{sec:experiments}
@@ -400,13 +402,13 @@ In~\cite{hookerBenchmarkInterpretabilityMethods2019} it was proposed a variation
     \label{fig: white-deletion benchmark}
 \end{figure}
 
-Going back to the deletion metric, its problem is that the value of a pixel cannot be deleted, because for a neural network any value can have some meaning, including the black, the gray or noise. Then, the value introduced can affect different pixels in different ways, introducing unknown biases. However, the separation in two different sets of pixels, the ones that should be brighter to improve the classification score of the original predictions and the ones that should be darker, opens the door to implement the deletion technique knowing what means the introduced value. In this paper the two proposed metrics are called black-deletion and white-deletion.
+Going back to the deletion metric, its problem is that the value of a pixel cannot be deleted, because for a neural network any value can have some meaning, including the black, the gray or noise. Then, the value introduced can affect different pixels in different ways, introducing unknown biases. However, the separation in two different sets of pixels, the ones that should be brighter (positive and active saliency maps) to improve the classification score of the original predictions and the ones that should be darker (negative and inactive saliency maps), opens the door to implement the deletion technique knowing what the introduced value means. In this paper the two proposed metrics are called black-deletion and white-deletion.
 
-First, the new techniques give the user the two different sets of pixels (should be brighter and should be darker). Since increasing the value of some of them improves the classification score of the predicted classes, putting them to zero (black-deletion) should harm severely the original classification. On the contrary, the pixels that have to be darker to improve the classification score of the original prediction, should not harm the original classification that much. Analogously, putting them to one (white deletion) should show the opposite behaviors. It is important to note that The accuracy for the following fractions of deleted pixels has been computed: [0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]. These can be appreciated in Figure~\ref{fig: black-deletion benchmark} and Figure~\ref{fig: white-deletion benchmark}. 
+First, the new techniques give the user the two different sets of pixels (should be brighter and should be darker). Since increasing the value (making them brighter) of some of them improves the classification score of the predicted classes, putting them to zero (black-deletion) should harm severely the original classification. Analogously, putting the pixels that should be darker to improve the original classification to one (white deletion) should show also harm severely the original classification. Therefore, black-deletion will help to measure the effect of positive and active salience maps, while white deletion will be used to measure negative and inactive salience maps. Both metrics will measure the change in the predicted classes with respect to the original classification (something that here has been called allegiance) for the following fractions of deleted pixels: [0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]. The interval to measure the deletion is 10\%, since based on the literature~\cite{hookerBenchmarkInterpretabilityMethods2019} it a common interval, with a higher level of detail at the beginning to show the sharp decrease in the first deletions. These can be appreciated in Figure~\ref{fig: black-deletion benchmark} and Figure~\ref{fig: white-deletion benchmark}. 
 
-In the graphs it can be seen that the behavior is the expected, meaning that the selection of positive, negative, active and inactive gradients worked. As expected, the decrease in accuracy for black-deletion is greater for active and positive (being active the greatest) and smaller for negative and inactive (being inactive the smallest decrease). To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc saliency maps deletions}. The intuition of what would happen in the experiments was correct and active and inactive saliency maps seem to be an improvement over Positive and Negative variants (as they are theoretically).
+In the graphs it can be seen that the behavior is the expected, meaning that the selection of positive, negative, active and inactive gradients worked. As expected, the decrease in allegiance for black-deletion is greater for active and positive than for the original saliency map. Analogously, the decrease in allegiance for white-deletion is greater for inactive and negative saliency maps than for the original ones. This proves that the pixels identified.
 
-\begin{table}[t]
+\begin{table}
   \centering
   \small
   \caption{AUC for black deletions in saliency maps.}
@@ -424,7 +426,7 @@ In the graphs it can be seen that the behavior is the expected, meaning that the
   \end{tabular*}
 \end{table}
 
-\begin{table}[t]
+\begin{table}
   \centering
   \small
   \caption{AUC for white deletions in saliency maps.}
@@ -441,7 +443,13 @@ In the graphs it can be seen that the behavior is the expected, meaning that the
     \bottomrule
   \end{tabular*}
 \end{table}
-It is true that these metrics are still not perfect, since the value used for the deletion are the extreme values, and pixels that may improve the classification by being brighter or darker, but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value since any pixel can be darker and brighter than them, respectively. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
+
+An important thing to note is that in the graphs it can be seen that for active and inactive saliency maps there is almost no change after 50\% of the pixels have been deleted. The reason for this is that in the active and inactive there are a lot of pixels that are black (because its derivative with respect to the original predicted class is not greater (active) or lower (inactive) than for any other class). Therefore, after all the pixels from the active and inactive saliency maps are deleted there is no change since the pixels that have zero value in the saliency maps were ignored in the deletion (deleting a pixel that does not belong to the saliency map variant does not give us any information). The same happens for the positive and negative later, around 80\%, showing that there are more pixels with positive and negative derivatives, than pixels with a derivative higher or lower with respect to the original class than for any other class.
+
+To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc for black deletions in saliency maps} for black-deletion and in Table~\ref{tab:auc for white deletions in saliency maps} for white-deletion. The intuition of what would happen in the experiments was correct and it has been shown that the new proposed method help the user in identifying pixels that, by being brighter or darker, help the confidence of original predicted classes. However, although the improvement over the original saliency map is clear, it is surprising how positive and negative sometimes work better than active and inactive. The main reason for this could be that these metrics are still not perfect, since the value used for the deletion are the extreme values, and pixels that may improve the classification by being brighter or darker, but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value since any pixel can be darker and brighter than them, respectively. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
+
+Note that every computation shown in this section is based on the test dataset. To see the ones from the training, that have similar results, go to Appendix~\ref{sec:black-deletion and white-deletion for training set}.
+
 
 \section{Conclusion and future work}
 \label{sec:conclusions and future research}
@@ -458,6 +466,9 @@ Another contribution worth of mentioning is that taking into account the sign or
 \section{Signed saliency map examples}
 \label{sec:signed saliency map examples}
 In this appendix the examples for each technique will be showed for all the combinations:
+
+\section{Black-Deletion and White-Deletion for Trainning set}
+\label{sec:black-deletion and white-deletion for training set}
 
 % \begin{figure}[p]
 %   \centering
