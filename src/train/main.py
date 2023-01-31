@@ -6,6 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 # other libraries
 import os
 from tqdm.auto import tqdm
+from typing import Dict, Union
 
 # own modules
 from src.train.models import Resnet18, ConvNext, CNNModel
@@ -20,7 +21,7 @@ torch.set_num_threads(8)
 
 # static variables
 DATA_PATH = {'cifar10': './data/cifar10', 'imagenette': './data/imagenette/original_data'}
-POSTPROCESS_DATA_PATH = {'cifar10': None, 'imagenette': './data/imagenette/postprocess_data'}
+POSTPROCESS_DATA_PATH : Dict[str, str] = {'imagenette': './data/imagenette/postprocess_data'}
 NUMBER_OF_CLASSES = 10
 
 # variables
@@ -55,6 +56,7 @@ def main() -> None:
     writer = SummaryWriter(f'./runs/{dataset}/{name}')
 
     # define model
+    model: Union[Resnet18, ConvNext, CNNModel]
     if model_type == 'resnet18':
         model = Resnet18(NUMBER_OF_CLASSES, pretrained).to(device)
     elif model_type == 'convnext':
@@ -75,7 +77,7 @@ def main() -> None:
             model.classifier.requires_grad_(True)
         
         # define optimizer
-        optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=lr)
+        optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=lr) 
         
     else:
         # activate all layers

@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from tqdm.auto import tqdm
+from typing import List, Optional, Dict
 
 # own modules
 from src.train.utils import load_cifar10_data, load_imagenette_data, preprocess_imagenette, set_seed
@@ -78,7 +79,7 @@ def main() -> None:
         # if the examples does not exist yet create them
         if len(os.listdir(examples_path)) == 0:
             # initialize correct and wrong examples vectors
-            examples = NUMBER_OF_CLASSES * [None]
+            examples: List[Optional[torch.Tensor]] = [None for _ in range(NUMBER_OF_CLASSES)]
 
             # iter over the dataset looking for correct examples
             for image, label in val_data:
@@ -98,11 +99,11 @@ def main() -> None:
                 i += 1
 
         # create tensors for examples
-        examples = torch.zeros((NUMBER_OF_CLASSES, 3, height, width)).to(device)
+        examples_tensor: torch.Tensor = torch.zeros((NUMBER_OF_CLASSES, 3, height, width)).to(device)
 
         # load examples
         for i in range(NUMBER_OF_CLASSES):
-            examples[i] = torch.load(f'{examples_path}/{i}.pt').squeeze(0).to(device)
+            examples_tensor[i] = torch.load(f'{examples_path}/{i}.pt').squeeze(0).to(device)
             
         # check if visualization path is created
         if not os.path.isdir(f'{visualizations_path}/examples/{dataset}/{model_type}_{pretrained}'):
@@ -110,10 +111,10 @@ def main() -> None:
         
         # create and save examples images
         figures = []
-        for i in range(examples.shape[0]):
+        for i in range(examples_tensor.shape[0]):
             figure = plt.figure()
             plt.axis('off')
-            plt.imshow(format_image(examples[i]), cmap='hot')
+            plt.imshow(format_image(examples_tensor[i]), cmap='hot')
             plt.savefig(f'{visualizations_path}/examples/{dataset}/{model_type}_{pretrained}/{i}.png', 
                         bbox_inches='tight', pad_inches=0, format='png', dpi=300)
             plt.close()
@@ -123,7 +124,7 @@ def main() -> None:
         for method_name, method in METHODS.items():
             # compute explanations
             explainer = method(model)
-            saliency_maps = explainer.explain(examples)
+            saliency_maps = explainer.explain(examples_tensor)
             
             # check if visualization path is created
             if not os.path.isdir(f'{visualizations_path}/saliency_maps/{method_name}/'
@@ -133,7 +134,7 @@ def main() -> None:
             
             # create and save examples images
             figures = []
-            for i in range(examples.shape[0]):
+            for i in range(examples_tensor.shape[0]):
                 figure = plt.figure()
                 plt.axis('off')
                 plt.imshow(saliency_maps[i].detach().cpu().numpy(), cmap='hot')
@@ -153,7 +154,7 @@ def main() -> None:
                 mask = mask.unsqueeze(1)
                 mask = mask.repeat(1, 3, 1, 1)
                 
-                inputs = examples.clone()
+                inputs = examples_tensor.clone()
                 inputs[mask==1] = 0
                     
                 # check if visualization path is created
@@ -164,7 +165,7 @@ def main() -> None:
                     
                 # create and save examples images
                 figures = []
-                for i in range(examples.shape[0]):
+                for i in range(examples_tensor.shape[0]):
                     figure = plt.figure()
                     plt.axis('off')
                     plt.imshow(format_image(inputs[i]), cmap='hot')
@@ -262,7 +263,7 @@ def main() -> None:
         # create graphs
         for subs_value in [0, 1]:
             for loader_name in ['train', 'val']:
-                results = {}
+                results: Dict[str, List[float]] = {}
                 for method_name, method in METHODS.items():
                     # ignore negative and actives for 0 subs
                     if subs_value == 0 and (method_name == 'negative_saliency_map' or method_name == \

@@ -7,7 +7,7 @@ from typing import List
 
 
 def auc(vector: List[float], len_between: float = 1.0) -> float:
-    area = 0
+    area = 0.0
     for i in range(1, len(vector)):
         if vector[i] > vector[i-1]:
             area += len_between*vector[i-1] + len_between*(vector[i] - vector[i-1])/2
@@ -16,9 +16,10 @@ def auc(vector: List[float], len_between: float = 1.0) -> float:
             
     return area
 
+
 def format_image(image: torch.Tensor) -> np.ndarray:
     
     image = torch.swapaxes(image, 0, 2)
-    image = torch.swapaxes(image, 0, 1).detach().cpu().numpy()
+    image_numpy: np.ndarray = torch.swapaxes(image, 0, 1).detach().cpu().numpy()
     
-    return image
+    return image_numpy

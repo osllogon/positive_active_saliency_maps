@@ -2,6 +2,9 @@
 import torch
 import torch.nn.functional as F
 
+# other libraries
+from typing import Optional
+
     
 class SaliencyMap:
     
@@ -26,6 +29,7 @@ class SaliencyMap:
         ----------
         images : torch.Tensor
             batch of images. Dimensions [batch, channels, height, width]
+            
         Returns
         -------
         torch.Tensor
@@ -33,7 +37,7 @@ class SaliencyMap:
         """
 
         # forward pass
-        inputs = images.clone()
+        inputs: torch.Tensor = images.clone()
         inputs.requires_grad_(True)
         outputs = self.model(inputs)
         max_scores, _ = torch.max(outputs, dim=1)
@@ -42,7 +46,7 @@ class SaliencyMap:
         self.model.zero_grad()
         max_scores.backward(torch.ones_like(max_scores))
 
-        return inputs.grad
+        return inputs.grad # type: ignore
     
     # overriding abstract method
     @torch.no_grad()
@@ -72,77 +76,7 @@ class SaliencyMap:
 
         return saliency_maps
     
-class SmoothGradSaliencyMap(SaliencyMap):
-    
-    def __init__(self, model: torch.nn.Module) -> None:
-        """
-        Constructor of SmoothGradSaliencyMap class
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            model for classifying images
-        """
-        
-        super().__init__(model)
-    
-    # overriding method
-    def explain(self, images: torch.Tensor) -> torch.Tensor:
-        """
-        This method computes SmoothGrad Saliency Maps
-        
-        Parameters
-        ----------
-        images : torch.Tensor
-            batch of images. Dimensions: [bath size, channels, height, width]
-            
-        Returns
-        -------
-            batch of saliency maps. Dimensions: [batch size, height, width]
-        """
-        
-        # get device from images
-        device = images.device
-
-        # compute inputs with noise
-        min_ = torch.amin(images, dim=(1, 2, 3), keepdim=True)
-        max_ = torch.amax(images, dim=(1, 2, 3), keepdim=True)
-        std = (max_ - min_) * self.noise_level * torch.ones(self.sample_size, *images.size()).to(device)
-        noise = torch.normal(mean=0, std=std)
-        inputs = images.clone().unsqueeze(0)
-        inputs = inputs + noise
-
-        # create gradients tensor
-        gradients = torch.zeros_like(inputs)
-
-        # compute gradients for each noise batch
-        for i in range(inputs.size(0)):
-            # clone batch
-            inputs_batch = inputs[i].clone()
-
-            # pass the noise batch through the model
-            with torch.enable_grad():
-                inputs_batch.requires_grad_()
-                outputs = self.model(inputs_batch)
-                max_scores, _ = torch.max(outputs, dim=1)
-
-                # compute gradients
-                self.model.zero_grad()
-                max_scores.backward(torch.ones_like(max_scores))
-                gradients[i] = inputs_batch.grad
-
-        # create smoothgrad saliency maps
-        saliency_maps, _ = torch.max(torch.abs(gradients), dim=2)
-        saliency_maps = torch.sum(saliency_maps, dim=0) / self.sample_size
-
-        # normalize between 0 and 1
-        min_ = torch.amin(saliency_maps, dim=(1, 2), keepdim=True)
-        max_ = torch.amax(saliency_maps, dim=(1, 2), keepdim=True)
-        saliency_maps = (saliency_maps - min_) / (max_ - min_)
-
-        return saliency_maps
-    
-    
+  
 class PositiveSaliencyMap(SaliencyMap):
     """
     This class creates positive saliency maps visualizations. This class inherits from SaliencyMap class
