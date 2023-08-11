@@ -5,9 +5,8 @@ import torch.nn.functional as F
 # other libraries
 from typing import Optional
 
-    
+
 class SaliencyMap:
-    
     def __init__(self, model: torch.nn.Module) -> None:
         """
         Constructor of SaliencyMap class
@@ -17,19 +16,19 @@ class SaliencyMap:
         model : torch.nn.Module
             model for classifying images
         """
-        
+
         self.model = model
-        
+
     @torch.enable_grad()
     def _compute_gradients(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes gradients of images
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -46,19 +45,19 @@ class SaliencyMap:
         self.model.zero_grad()
         max_scores.backward(torch.ones_like(max_scores))
 
-        return inputs.grad # type: ignore
-    
+        return inputs.grad  # type: ignore
+
     # overriding abstract method
     @torch.no_grad()
     def explain(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes saliency maps
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -75,17 +74,17 @@ class SaliencyMap:
         saliency_maps = (saliency_maps - min_) / (max_ - min_)
 
         return saliency_maps
-    
-  
+
+
 class PositiveSaliencyMap(SaliencyMap):
     """
     This class creates positive saliency maps visualizations. This class inherits from SaliencyMap class
-    
+
     Attributes
     ----------
     model : torch.Tensor
         neural network used for classify images
-        
+
     Methods
     -------
     explain -> torch.Tensor
@@ -94,7 +93,7 @@ class PositiveSaliencyMap(SaliencyMap):
     def __init__(self, model: torch.nn.Module) -> None:
         """
         Constructor of PositiveSaliencyMap
-        
+
         Parameters
         ----------
         model : torch.nn.Module
@@ -109,12 +108,12 @@ class PositiveSaliencyMap(SaliencyMap):
     def explain(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes Positive Saliency Maps
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -137,12 +136,12 @@ class PositiveSaliencyMap(SaliencyMap):
 class NegativeSaliencyMap(SaliencyMap):
     """
     This class creates negative saliency maps visualizations. This class inherits from SaliencyMap class
-    
+
     Attributes
     ----------
     model : torch.Tensor
         neural network used for classify images
-        
+
     Methods
     -------
     explain -> torch.Tensor
@@ -151,7 +150,7 @@ class NegativeSaliencyMap(SaliencyMap):
     def __init__(self, model: torch.nn.Module) -> None:
         """
         Constructor of NegativeSaliencyMap
-        
+
         Parameters
         ----------
         model : torch.nn.Module
@@ -166,12 +165,12 @@ class NegativeSaliencyMap(SaliencyMap):
     def explain(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes Negative Saliency Maps
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -194,12 +193,12 @@ class NegativeSaliencyMap(SaliencyMap):
 class ActiveSaliencyMap(SaliencyMap):
     """
     This class creates active saliency maps visualizations. This class inherits from SaliencyMap class
-    
+
     Attributes
     ----------
     model : torch.Tensor
         neural network used for classify images
-        
+
     Methods
     -------
     explain -> torch.Tensor
@@ -208,7 +207,7 @@ class ActiveSaliencyMap(SaliencyMap):
     def __init__(self, model: torch.nn.Module) -> None:
         """
         Constructor of ActiveSaliencyMap
-        
+
         Parameters
         ----------
         model : torch.nn.Module
@@ -223,22 +222,24 @@ class ActiveSaliencyMap(SaliencyMap):
     def explain(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes Active Saliency Maps
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
             batch of active saliency maps. Dimensions: [batch, height, width]
         """
-        
+
         # compute original saliency maps
         saliency_maps = self._compute_gradients(images)
         number_of_classes = self.model(images).size(1)
-        class_indexes = torch.argmax(self.model(images), dim=1).reshape(images.size(0), 1, 1, 1)
+        class_indexes = torch.argmax(self.model(images), dim=1).reshape(
+            images.size(0), 1, 1, 1
+        )
 
         # iterate over different classes
         for i in range(number_of_classes):
@@ -274,12 +275,12 @@ class ActiveSaliencyMap(SaliencyMap):
 class InactiveSaliencyMap(SaliencyMap):
     """
     This class creates inactive saliency maps visualizations. This class inherits from SaliencyMap class
-    
+
     Attributes
     ----------
     model : torch.Tensor
         neural network used for classify images
-        
+
     Methods
     -------
     explain -> torch.Tensor
@@ -288,7 +289,7 @@ class InactiveSaliencyMap(SaliencyMap):
     def __init__(self, model: torch.nn.Module) -> None:
         """
         Constructor of InactiveSaliencyMap
-        
+
         Parameters
         ----------
         model : torch.nn.Module
@@ -303,12 +304,12 @@ class InactiveSaliencyMap(SaliencyMap):
     def explain(self, images: torch.Tensor) -> torch.Tensor:
         """
         This method computes Inactive Saliency Maps
-        
+
         Parameters
         ----------
         images : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -318,7 +319,9 @@ class InactiveSaliencyMap(SaliencyMap):
         # compute original saliency maps
         saliency_maps = self._compute_gradients(images)
         number_of_classes = self.model(images).size(1)
-        class_indexes = torch.argmax(self.model(images), dim=1).reshape(images.size(0), 1, 1, 1)
+        class_indexes = torch.argmax(self.model(images), dim=1).reshape(
+            images.size(0), 1, 1, 1
+        )
 
         # iterate over different classes
         for i in range(number_of_classes):
@@ -349,4 +352,3 @@ class InactiveSaliencyMap(SaliencyMap):
         saliency_maps = (saliency_maps - min_) / (max_ - min_)
 
         return saliency_maps
-    
