@@ -134,12 +134,12 @@ def load_imagenette_data(
         DataLoader: train data
         DataLoader: validation data
     """
-    
+
     # download folders if they are not present
     if not os.path.isdir(f"{path}"):
         # create main dir
         os.makedirs(f"{path}")
-        
+
         # define paths
         url: str = "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz"
         target_path: str = f"{path}/imagenette2.tgz"
@@ -147,15 +147,15 @@ def load_imagenette_data(
         # download tar file
         response = requests.get(url, stream=True)
         if response.status_code == 200:
-            with open(target_path, 'wb') as f:
+            with open(target_path, "wb") as f:
                 f.write(response.raw.read())
-                
+
         # extract tar file
         tar_file = tarfile.open(target_path)
         tar_file.extractall(path)
         tar_file.close()
-        
-        # create final save directories 
+
+        # create final save directories
         os.makedirs(f"{path}/train")
         os.makedirs(f"{path}/val")
 
@@ -195,51 +195,6 @@ def load_imagenette_data(
     )
 
     return train_dataloader, val_dataloader
-
-
-def preprocess_imagenette(original_path: str, save_path: str) -> None:
-    """
-    This method generates a single directory for each split (train and val) with all the images and the title of each
-    image is in the following format: {class_number}_{random_number}.jpg. This method also resizes all images to 256x256
-
-    Parameters
-    ----------
-    original_path : str
-        original path for the dataset
-    save_path : str
-        path for saving the dataset after preprocess
-
-    Raises
-    ------
-    FileNotFoundError
-        if original_path does not exist
-    """
-
-    # create save directories if they don't exist
-    if not os.path.isdir(f"{save_path}"):
-        os.makedirs(f"{save_path}/train")
-        os.makedirs(f"{save_path}/val")
-
-    # define resize transformation
-    transform = transforms.Resize((224, 224))
-
-    # loop for saving processed data
-    list_splits = os.listdir(original_path)
-    for i in range(len(list_splits)):
-        list_class_dirs = os.listdir(f"{original_path}/{list_splits[i]}")
-        for j in range(len(list_class_dirs)):
-            list_dirs = os.listdir(
-                f"{original_path}/{list_splits[i]}/{list_class_dirs[j]}"
-            )
-            for k in range(len(list_dirs)):
-                image = Image.open(
-                    f"{original_path}/{list_splits[i]}/{list_class_dirs[j]}/{list_dirs[k]}"
-                )
-                image = transform(image)
-                if image.im.bands == 3:
-                    image.save(f"{save_path}/{list_splits[i]}/{j}_{k}.jpg")
-
-    return None
 
 
 def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:

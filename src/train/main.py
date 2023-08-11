@@ -14,7 +14,6 @@ from src.train.utils import (
     accuracy,
     load_cifar10_data,
     load_imagenette_data,
-    preprocess_imagenette,
     set_seed,
 )
 
@@ -30,9 +29,6 @@ DATA_PATH = {
     "cifar10": "./data/cifar10",
     "imagenette": "./data/imagenette",
 }
-# POSTPROCESS_DATA_PATH: Dict[str, str] = {
-#     "imagenette": "./data/imagenette/postprocess_data"
-# }
 NUMBER_OF_CLASSES = 10
 
 
@@ -57,11 +53,6 @@ def main() -> None:
             DATA_PATH[dataset], batch_size=128, num_workers=4
         )
     elif dataset == "imagenette":
-        # preprocess step
-        # if not os.path.isdir(POSTPROCESS_DATA_PATH[dataset]):
-        #     preprocess_imagenette(DATA_PATH[dataset], POSTPROCESS_DATA_PATH[dataset])
-
-        # load data
         train_data, val_data = load_imagenette_data(
             DATA_PATH[dataset], batch_size=128, num_workers=4
         )
