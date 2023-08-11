@@ -48,8 +48,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{amsmath}
-  \DeclareMathOperator*{\argmax}{arg\!max}
-  \DeclareMathOperator*{\argmin}{arg\!min}
+  \DeclareMathOperator*{\argmax}{argmax}
+  \DeclareMathOperator*{\argmin}{argmin}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
@@ -62,6 +62,10 @@
 \usepackage{tikz}
 \usepackage{adjustbox}
 \usepackage{amsfonts} 
+\usepackage{siunitx}
+
+\usepackage{hyperref}
+  \renewcommand{\sectionautorefname}{Section}
 
 \newsavebox{\mysavebox}
 
@@ -153,7 +157,7 @@
 
 \begin{abstract}
 %% Text of abstract
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Saliency maps have become one of the most widely used interpretability techniques for convolutional neural networks~(CNN) due to their simplicity and the quality of the insights they provide. However, there are still some doubts about whether these insights are a trustworthy representation of what CNNs use to come up with their predictions. This paper explores how rescuing the sign of the gradients from the saliency map can lead to a deeper understanding of multi-class classification problems. Using both pretrained and trained from scratch CNNs we unveil that considering the sign and the effect not only of the correct class, but also the influence of the other classes, allows to better identify the pixels of the image that the network is really focusing on. Furthermore, how occluding or altering those pixels is expected to affect the outcome also becomes clearer. 
 \end{abstract}
 
 %%Graphical abstract
@@ -169,7 +173,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 \begin{keyword}
 %% keywords here, in the form: keyword \sep keyword
-eXplainable Artificial Intelligence (XAI) \sep Convolutional Neural Networks \sep Saliency maps \sep Visualization \sep Gradient signs
+Interpretability, convolutional neural networks \sep saliency maps \sep visualization \sep gradient signs
 %% PACS codes here, in the form: \PACS code \sep code
 %\PACS 0000 \sep 1111
 %% MSC codes here, in the form: \MSC code \sep code
@@ -184,120 +188,115 @@ eXplainable Artificial Intelligence (XAI) \sep Convolutional Neural Networks \se
 %% main text
 \section{Introduction}
 \label{sec:introduction}
-Since the introduction of AlexNet~\cite{krizhevskyImageNetClassificationDeep2012} in the ImageNet~\cite{ImageNet} competition there has been a revolution in the Computer Vision field, where almost in any problem deep learning architectures are the considered the state of the art. However, this type of technology has a big drawback, specially if it is used in sensitive domains, as medicine or autonomous vehicles, its explainability. Due to the high number of parameters (billions) and the complexity of these techniques, it is difficult to explain how a neural network make a certain prediction. To solve this problem, there are two main lines of research:
+The overwhelming mediatic interest that generative artificial intelligence is drawing lately is fostering the adoption of deep learning models in almost every area of our lives. Unfortunately, the outstanding advances brought by these massive models have yet to be accompanied by an equivalent effort to make them more interpretable. Blindly using complex models without worrying about how their outputs are generated entails risks that must be mitigated if we strive to adopt them in sensitive sectors, as many authorized voices and legislators are already pointing out. 
 
-\begin{itemize}
-    \item Building more interpretable models.
-    \item Developing techniques to explain the state of the art architectures.
-\end{itemize}
+There are basically two approaches to address this issue: building models that are easier to understand by design and at the same time match the performance of their black box counterparts, or developing techniques to disclose what is going on inside the black boxes. This paper concentrates on the field of computer vision, where there are indeed some attempts to construct interpretable models for object classification~\cite{Zhang2021} and medical applications~\cite{Singh2022}. However, due to their great feature extraction capabilities, far better than reknown traditional engineered features such as SIFT~\cite{Lowe2004}, many modern computer vision solutions still rely on regular convolutional neural networks~(CNNs)~\cite{LeCun1998} as part of their pipeline, whose inner workings are hard to interpret and understand. 
 
-There have been attempts to construct these interpretable models for the sensitive domains as in~\cite{singhThinkPositiveInterpretable2022}. However, there are also many other techniques used for Computer Vision problems that offer great results and are not easy to explain, as the classical Convolutional Neural Networks (CNNs)~\cite{lecunConvolutionalNetworksImages}. To explain these other models  several techniques have been developed during the last years. One of the most used types are saliency maps.
+Over the past decade, the research community has produced several techniques that seek to shed some light on how CNNs come up with their predictions. Leaving the visual inspection of the convolutional filters aside, most of the proposals consist in studying the effect of exciting the model with known stimuli and projecting the result back into the input image. 
 
-Saliency maps were introduced first in~\cite{simonyanDeepConvolutionalNetworks2014} to explain the classification of a neural network based on its derivatives. This type of methods are commonly tested in a multi-class classification problem that can be defined as the following:
+One family of techniques attempts to approximate the trained network with simpler models. Zhou~et~al.~\cite{Zhou2015} remove information from the input images to obtain a minimal representation that preserves as little visual information as possible without significantly impacting the classification score. This is done by segmenting the image and iteratively discarding those regions that contribute the least. Ribeiro~et~al.~\cite{Ribeiro2016} propose~LIME, an algorithm that approximates any classifier or regressor locally with interpretable models. To deal with images they extract $K$ superpixels and treat them as input binary features for a linear model. Similarly, Frosst and Hinton~\cite{Frosst2017} suggest building a binary soft decision tree from the learned filters.
 
+Another popular approach relies on backpropagation. Deconvolutional Networks or DeconvNets~\cite{Zeiler2014} invert the order of the CNN layers to discover the input pixels responsible for the information encoded in every feature map. DeconvNets allow gathering evidence about the type of features every CNN layer is able to extract, from basic geometries like corners and edges at the beginning to class-specific features as one proceeds deeper into the network. 
+
+Due to their simplicity, and perhaps for being one of the seminal methods in this category, saliency maps~\cite{Simonyan2014} have become one of the most popular local interpretability methods for CNNs. They compute the absolute gradient of the target output to respect to every input feature (i.e.,~pixels on images) and are commonly employed in multi-class classification problems:
 \begin{equation}
     \label{eq: cnn output}
-    \hat{c} = \argmax_{c \in C}S_c(\boldsymbol{I}),
+    \hat{c} = \argmax_{c \in C}S_c(\boldsymbol{I})
 \end{equation}
-
-\noindent
-being $\boldsymbol{I}$ the input image, $C$ the set of all possible classes and $S_c$ the classification score for a certain class $c$. Since usually an image is expressed in rgb format is important to note that $\boldsymbol{I} \in \mathbb{R}^{\text{channels}\, x\, \text{height}\, x\, \text{width}}$. Then, the original saliency map method is expressed as:
-
+where $\boldsymbol{I}$ is the input image, $C$ the set of all possible classes, and $S_c$ corresponds to the classification score for a given class $c$. Since images are usually encoded in the RGB color space, it is important to bear in mind that $\boldsymbol{I} \in \mathbb{R}^{\text{channels} \times \text{height} \times \text{width}}$ is a tensor. The original saliency map method is mathematically expressed as
 \begin{equation}
+    \boldsymbol{M}_{i\, j} = \max_{k} \bigg | \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg |
     \label{eq: 3d saliency map}
-    \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ),
 \end{equation}
+$\boldsymbol{M}$ is a 2D map, $k$ indicates a specific channel and, $i$ and $j$, are the row and column of every pixel, respectively. According to~\cite{Simonyan2014}, the brightest points in a saliency map (i.e.,~the derivatives with a larger absolute value) are the pixels that, with a minimal change, should affect the class score the most. As shown in (\ref{eq: 3d saliency map}), the maximum over the three channels is computed to obtain a single value per pixel. Even though this decision may seem arbitrary, it is the convention followed in almost every subsequent paper on saliency maps.
 
-\noindent
-being $\boldsymbol{M}$ a 2D map, $k$ an specific channel and, $i$ and $j$, the height and width coordinates, respectively. According to~\cite{simonyanDeepConvolutionalNetworks2014}, the brightest points in a saliency map, i.e., the derivatives with a higher absolute value, are the points that, with a minimum change, affect the class score the most. As it is shown in the previous equation, to derive a single value per pixel, the maximum function over the three pixels is computed. Even though this decision can seem arbitrary, this is the convention that has been followed in every paper about saliency maps.
+There have been several attempts to reduce the inherent noise of saliency maps like that of Shrikumar~et~al.~\cite{Shrikumar2017}, who suggest multiplying element-wise the input and the gradient to produce sharper representations. However, the fact that on visual inspection the representation resembles the input image is no guarantee of its correctness as put forward in the sanity checks proposed by Adebayo~et~al.~\citep{Adebayo2018}. Apparently, the same happens to varying degrees in other similar methods such as $\epsilon$-LRP, DeepLIFT~\cite{Ancona2018}, or integrated gradients~\cite{Sundarajan2017}. The technique does not highlight what the neural network has learned to pay attention to, but rather tends to augment features from the input image such as edges that may or may not be relevant to the prediction.
 
-However, the original saliency maps are very noisy. Therefore, in the following years many variations were suggested to try to improve this visualization and make this noise disappear, as in \cite{springenbergStrivingSimplicityAll2015a, sundararajanAxiomaticAttributionDeep2017, shrikumarNotJustBlack2017}. By these, sharper visualizations were achieved, being these ones more similar to the object in the image and reducing the noise. Unfortunately, in~\cite{adebayoSanityChecksSaliency2018} it was proved that some of these techniques were not showing information about what the neural network has learned, but features from the image, as an edge detector. 
-
-Nevertheless, there is no need of using these techniques to improve the ones from the original saliency maps: more knowledge can be unlocked from the gradients of the neural network without further modifications. First, the sign of the gradients has not been studied in any paper. This sign can have a meaning and a significant impact in the neural network behavior that researchers are trying to understand. Moreover, the type of problem being studied is a multi-class classification problem, and a visualization that tries to explain that, should take into account all these classes and not only the one that is being predicted. In other words, the magnitude of the gradients can have a different meaning depending on whether it is greater or smaller than the gradients for other classes. 
-
-\section{The sign in saliency maps}
-\label{sec:the sign in saliency maps}
-As pointed out in the last section, there is not any research about the meaning or impact of the sign in saliency maps. The only article that discuss briefly this aspect is~\cite{smilkovSmoothGradRemovingNoise}. In this paper it was explained that the raw value of gradients (without absolute value) is commonly used for MNIST dataset~\cite{MNISTHandwrittenDigit} but not in other datasets as ImageNet. The reason for this is that in the former it produces clearer pictures and in the latter is the opposite. 
-
-However, by taking the absolute value of all the pixels in the saliency map, information can be lost. It is not only valuable knowing which pixels are important but also their meaning. For example, it would be significant, for the explainability field, having a technique that can indicate which zones of the image should be brighter to improve the classification and which ones should be darker. This is in fact the information that the sign can provide. Moreover, if both sets of pixels are combined in the same image without any distinctions between them, they can produce worse explanations. It can seem as if the model is not able to distinguish between zones that should be brighter and others that should be darker, as for example an object in front of a black background. Based on this, two sets of pixels can be distinguished in the image:
-
+This paper proposes several improvements over the regular saliency maps to increase the insights that can be extracted. The contributions can be summarized in three main points:
 \begin{itemize}
-    \item Pixels that by increasing their value, the classification score of the predicted class improves since they have a positive value in the saliency map (positive gradient).
-    \item Pixels that by decreasing their value, the classification score of the predicted class improves since they have a negative value in the saliency map (negative gradient).
+  \item Instead of taking the absolute value of the gradients, and thus neglecting their sign, we prove that preserving this information enhances interpretability in multi-class classification problems by better identifying which pixels assist or deceive the network.  
+  \item The network would want pixels with a positive gradient to have higher intensities and those with negative gradients to be dimmed towards zero. This fact makes occlusion experiments more self-explanatory, since it is easier to understand the meaning of replacing a given pixel with a brighter or darker one, ultimately with white or black.
+  \item Typically, only the class of interest is considered when analyzing saliency maps. Based on the gradient sign, a set of metrics have been defined to quantitatively compare the impact on the prediction of a particular class caused by the rest of the classes.
 \end{itemize}
 
-Regarding the reason for not using the raw values exposed in~\cite{smilkovSmoothGradRemovingNoise}, it can be due to a high number of 0 values in the saliency map, since when normalized with positives and negatives these pixels will be shining at a medium intensity. To solve this, in this paper the visualization in different images is proposed, having the following new techniques:
+The remainder of the document is structured as follows. It starts with a brief discussion of the implications of ignoring the sign of the gradients (\autoref{sec:the sign in saliency maps}). Using the information provided by the sign, \autoref{sec:multi_class_saliency_map} explores the effect that modifying a pixel value has on a multi-class classification problem. Finally, \autoref{sec:experiments} presents the experiments conducted to support the conclusions derived in \autoref{sec:conclusions and future research}. 
+
+\section{The importance of the gradient sign}
+\label{sec:the sign in saliency maps}
+To the top of our knowledge, there is little research about the meaning or impact of the sign in saliency maps. The only article that briefly discusses this topic is~\cite{Smilkov2017}, which explains that the raw value of gradients (without taking the absolute value) is commonly used in the MNIST dataset~\cite{MNISTHandwrittenDigit}, but not in other datasets like ImageNet~\cite{ImageNet}. Apparently, experimental results suggest that on MNIST raw gradients produce clearer saliency maps and, at the same time, worse representations on ImageNet. Since the latter is the \textit{de facto} standard dataset for CNNs, in general saliency maps are implemented with the absolute value.
+
+However, taking the absolute value of every pixel in the saliency map comes at a cost and some enlightening information is lost. In terms of explainability, the opportunity of knowing which regions of the image should be brighter or darker to improve the classification accuracy is disregarded. Moreover, if both pixels with positive and negative gradients are combined in the same image without any distinctions, the representation can become confusing. Sometimes it may seem as if the model is not able to tell apart regions that should be brighter or darker like, for instance, an object (positive gradient) on an uninformative background (negative). Therefore, two sets of pixels can be distinguished in the image:
+
+\begin{itemize}
+    \item Pixels that improve the classification score of the predicted class if their value is \emph{increased}, since they have a positive value (gradient) in the saliency map.
+    \item Pixels that improve the classification score of the predicted class if their value is \emph{decreased}, because they have a negative gradient.
+\end{itemize}
+
+The advantage of this separation with respect to focusing on the raw gradients and then normalizing their values to represent them on a single image is that in~\cite{Smilkov2017} zero gradients shine at medium intensity after scaling, conveying a misleading idea of importance to those pixels. Instead, we propose creating two different visualizations before taking the absolute value (or the ReLU function, which naturally provides the same result if positive and negative gradients are handled separately):
 
 \begin{itemize}
     \item Positive saliency maps:
-    
     \begin{equation}
-        \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \text{ReLU} \bigg (\frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ) \bigg ),
+        \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \text{ReLU} \bigg (\frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ) \bigg )
         \label{eq: positive saliency map}
     \end{equation}
 
     \item Negative saliency maps:
-    
     \begin{equation}
-      \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \text{ReLU} \bigg ( - \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ) \bigg ),
+      \boldsymbol{M}_{i\, j} = \max_{k} \bigg ( \text{ReLU} \bigg ( - \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} \bigg ) \bigg )
       \label{eq: negative saliency map}
   \end{equation}
-
 \end{itemize}
-
-By separating them before taking the absolute value the information about what the pixels mean is not lost. 
 
 \section{Multi-class saliency maps}
-\label{sec:multi-class saliency map}
-As it was mentioned in Section~\ref{sec:introduction}, the problem being studied is a multi-class classification problem. However, currently all saliency map techniques used the predicted class to compute the derivatives. That does not take into account the information about other classes that the model is predicting. In other words, there can be another gradient, from the derivative respect to other class score, with a higher value than the one respect to the predicted class and the current techniques cannot show that to the user. If it is the case, and the value of this pixel is increased, the classification score for the other class will improve more than the one from the original class, making the prediction of the original class worse, instead of better. The reason for this is that, if the absolute value of all gradients is taken, there cannot be any comparison with the gradients of other classes, since there is no information anymore that can indicate what that a gradient is higher or lower than another means.
+\label{sec:multi_class_saliency_map}
+All saliency map techniques use the actual class to compute the derivatives. In multi-class classification problems this approach disregards the effect of the rest of the classes. Despite there can be pixel gradients computed respect to incorrect classes with a higher value, the current techniques do not draw attention to this fact. Whenever this happens, the interpretation of the saliency map changes since if the value of this pixel is increased, the classification score for the incorrect class will improve more than that of the true class, worsening the prediction. 
 
-However, going further in the analysis started in the last section about the sign allows to compare the gradients of the predicted class and the other ones. In fact, it improves the previous definitions about the different sets of pixels identified in the last section (positive and negative saliency maps):
-
+Taking the absolute value makes things even more undecipherable. Once you lose the sign information, you can no longer determine whether increasing the intensity of a pixel is bound to increase or decrease the score of a given class. In order to extend the scope of positive and negative saliency maps to consider the effect of all the classes, the definitions put forward in the previous section can be restated:
 \begin{itemize}
-    \item Pixels that by increasing their value the classification score for the predicted class will improve more that the score from any other class. Since now other classes are taken into account, only the pixels that have a higher gradient with respect to the predicted class than with respect to any other class, will improve the classification if their value is increased.
-    \item Analogously, the pixels that by decreasing their value classification score for the predicted class will improve more that the score from any other class, are only the ones that have a lower gradient with respect to the predicted class than with respect to any other class.
+  \item \emph{Active} pixels are those that improve the most the classification score of the predicted class if their value is \emph{increased}, more than that of any other class considered.
+    \item Analogously, \emph{inactive} pixels are those that improve the most the score of the predicted class if their value is \emph{decreased}. Their gradient with respect to the actual class is therefore the lowest (the most negative) among all the classes. These pixels are the ones that cause more confusion to the classifier.
 \end{itemize}
 
-Therefore, by comparing the saliency maps for the different classes the information about the two sets mentioned before can be extracted. Two new techniques are proposed to represent this:
+Based on these definitions, two additional saliency map visualization can be derived:
 
 \begin{itemize}
-    \item Active saliency map (increasing them improves the classification score from the original prediction):
-    
+    \item \emph{Active saliency maps} highlight the pixels that should be increased to improve the classification score of the true class:
     \begin{equation}
       \boldsymbol{M}_{i\, j} = \max_{k}
         \begin{cases}
-            \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}}, & \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} = \argmax_{c \in C}\frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \\
-            0, & \text{otherwise}
+            \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} & \text{if } \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} = \argmax_{c \in C}\frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \\
+            0 & \text{otherwise}
         \end{cases}
         \label{eq: active saliency map}
     \end{equation}
 
-    \item Inactive saliency map (decreasing them improves the classification score from the original prediction):
+    \item \emph{Inactive saliency maps} depict the pixels that should be dimmed to enhance the classification score of the correct class:
     
     \begin{equation}
       \boldsymbol{M}_{i\, j} = \max_{k}
         \begin{cases}
-            \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}}, & \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} = \argmin_{c \in C}\frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \\
-            0, & \text{otherwise}
+            \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} & \text{if } \frac{\partial S_{\hat{c}}}{\partial \boldsymbol{I}_{k\, i\, j}} = \argmin_{c \in C}\frac{\partial S_{c}}{\partial \boldsymbol{I}_{k\, i\, j}} \\
+            0 & \text{otherwise}
         \end{cases}
         \label{eq: inactive saliency map}
     \end{equation}
 
 \end{itemize}
 
-Note that, both type of methods, positive and negative saliency maps, and active and inactive saliency maps, pursue the same purpose. Positive and active try to find the pixels that by being brighter, increase the confidence of the original classification. Analogously, negative and inactive try to find the pixels that by being darker, also increase the confidence of the original classification.
-
-Positive and negative take into account the sign, which is a significant improvement from the original saliency maps. Active and inactive can be seen as a step further, taking into account also the other classes. Even so, positive and negative can also provide information about which pixels increase the score of the predicted class, even though another score is increasing more. This information can also help the user understand how the class scores of the model works.
+In conclusion, where positive and negative saliency maps provide information about whether increasing or decreasing the value of particular pixels improves the score of the correct class, active and inactive saliency maps go a step further and identify those pixels that should be altered to increase the confidence of the model in the prediction of the true class. 
 
 \section{Experiments}
 \label{sec:experiments}
-In this section the new proposed techniques will be evaluated qualitatively and quantitatively. With this purpose, a certain methodology was followed. First, two datasets are used to study the new methods, {CIFAR-10}~\cite{CIFAR10CIFAR100Datasets} and Imagenette~\cite{Imagenette2022}. The first one is a commonly used dataset for image classification and also for explainability. The second one is a subset of 10 classes of ImageNet. It is used this subset instead of the original ImageNet due to computing restrictions of hardware. Then, for CIFAR-10 two model will be used. The first is a CNN model based in a max-pooling, several layers for CNNs, an average-pooling and a final linear layer. The second one is the classical ResNet-18~\cite{heDeepResidualLearning2016}. Both model will be trained from scratch. On the other hand, for Imagenette, in addittion to these two models, a pre-trained version of the ResNet-18 and of the ConvNeXt~\cite{liuConvNet2020s2022} will be used. They were all trained with a learning rate of $0.001$ and the AdamW optimizer for 50 epochs. The results of the test set are the following:
+This section evaluates the proposed new saliency map representations both qualitatively and quantitatively on two different datasets: {CIFAR-10}~\cite{CIFAR10CIFAR100Datasets} and Imagenette~\cite{Imagenette2022}. The former is commonly used in image classification and interpretability papers. The latter is a subset of ten ImageNet classes that allows drawing grounded conclusions without requiring an immense computational effort. 
 
-\begin{table}[ht]
+The new saliency maps have been tested against both trained from scratch and pretrained models. Two models have been trained from scratch using CIFAR-10. The first is a basic CNN with several convolutional blocks with either max- or average-pooling and a final linear layer. The second uses the standard ResNet-18 architecture~\cite{heDeepResidualLearning2016}. For Imagenette, in addition to the previous two models, pre-trained versions of ResNet-18 and ConvNeXt~\cite{Liu2022} have also been evaluated. In all cases, the networks were trained during 50~epochs with a learning rate of \num{0.001} using the AdamW optimizer. \autoref{tab:training_results} shows the accuracies obtained. At the sight of these results, it seems that the models trained from scratch need more epochs. Stopping at this stage is an intentional decision to be able to study the performance of the proposed saliency maps during the training process.
+
+\begin{table}[h]
   \centering
   \small
   \caption{Test set accuracy.}
-  \label{tab: training results}
+  \label{tab:training_results}
   \begin{tabular}{L{6cm}C{2cm}C{2cm}}
     \toprule
     {} & CIFAR-10 & Imagenette \\
@@ -311,102 +310,92 @@ In this section the new proposed techniques will be evaluated qualitatively and 
 \end{table}
 
 \subsection{Qualitative evaluation}
+Following the same approach found in the literature of saliency maps \cite{Simonyan2014, Springenberg2015, Smilkov2017, Sundarajan2017}, first a visual inspection is carried out to compare the proposed visualizations with the standard saliency map. It is common practice to show only a few examples of the visualizations to perform the comparisons. However, none of the aforementioned articles explain how these examples are selected. Therefore, it could be the case that a particular visualization is better for a certain class or example. To prevent this problem, in this paper a correctly classified example has been randomly selected from the test set. To enhance readability, only two examples are shown in this section (Figures~\ref{fig: comparison saliency maps cnn cifar10} and \ref{fig: comparison saliency maps resnet18 imagenette}). Refer to \ref{sec:signed saliency map examples} to check the rest of the images.
 
-Following the same approach that can be found in the literature of saliency maps, first the techniques will be visually evaluated. In several papers, as in \cite{simonyanDeepConvolutionalNetworks2014}, \cite{springenbergStrivingSimplicityAll2015a}, \cite{smilkovSmoothGradRemovingNoise} or \cite{sundararajanAxiomaticAttributionDeep2017}, the different techniques were compared based on a visual inspection. 
+%\begin{figure}[ht]
+%  \centering
+%  \footnotesize
+%  \newcommand{\scale}{0.28}
+%  \setlength{\tabcolsep}{2pt}
+%  \begin{tabular}{cccccc}
+%  Image & Original & Positive & Negative & Active & Inactive \\
+%  
+%  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/1.png} &
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/1.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/1.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/1.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/1.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/1.png} \\
+%  
+%  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/2.png} &
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/2.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/2.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/2.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/2.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/2.png} \\
+%  \end{tabular}
+%  \caption{Comparison saliency maps CNN CIFAR-10.}
+%  \label{fig: comparison saliency maps cnn cifar10}
+%\end{figure}
+%
+%\begin{figure}[ht]
+%  \centering
+%  \footnotesize
+%  \newcommand{\scale}{0.28}
+%  \setlength{\tabcolsep}{2pt}
+%  \begin{tabular}{cccccc}
+%  Image & Original & Positive & Negative & Active & Inactive \\
+%  
+%  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/8.png} &
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/8.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/8.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/8.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/8.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/8.png} \\
+%  
+%  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/3.png} &
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/3.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/3.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/3.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/3.png} & 
+%  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/3.png} \\
+%  \end{tabular}
+%  \caption{Comparison saliency maps ResNet-18 Imagenette.}
+%  \label{fig: comparison saliency maps resnet18 imagenette}
+%\end{figure}
 
-\begin{figure}[ht]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.28}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
-  
-  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/1.png} &
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/1.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/1.png} \\
-  
-  \includegraphics[scale=\scale]{../visualizations/images/examples/cifar10/cnn_False/2.png} &
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/cifar10/cnn_False/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/cifar10/cnn_False/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/cifar10/cnn_False/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/cifar10/cnn_False/2.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/cifar10/cnn_False/2.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps CNN CIFAR-10.}
-  \label{fig: comparison saliency maps cnn cifar10}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \footnotesize
-  \newcommand{\scale}{0.28}
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{cccccc}
-  Image & Original & Positive & Negative & Active & Inactive \\
-  
-  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/8.png} &
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/8.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/8.png} \\
-  
-  \includegraphics[scale=\scale]{../visualizations/images/examples/imagenette/resnet18_True/3.png} &
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/saliency_map/imagenette/resnet18_True/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/positive_saliency_map/imagenette/resnet18_True/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/negative_saliency_map/imagenette/resnet18_True/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/active_saliency_map/imagenette/resnet18_True/3.png} & 
-  \includegraphics[scale=\scale]{../visualizations/images/saliency_maps/inactive_saliency_map/imagenette/resnet18_True/3.png} \\
-  \end{tabular}
-  \caption{Comparison saliency maps ResNet-18 Imagenette.}
-  \label{fig: comparison saliency maps resnet18 imagenette}
-\end{figure}
-
-One trend in the mentioned article is to just show some examples of the visualization to make the comparison. However, in none of them is explained how these examples are obtained. Therefore, it could be the case that the visualization is better for a certain class or example. To solve this problem in this paper a correct example for each class from the test is randomly selected. These images are shown in~\ref{sec:signed saliency map examples}. Here, two examples can be observed in Figure~\ref{fig: comparison saliency maps cnn cifar10} and Figure~\ref{fig: comparison saliency maps resnet18 imagenette}.
-
-From the comparison it can be appreciated that the proposed techniques reduce the noise of the original saliency maps, producing sharper visualization. The shape of the objects that the neural network is classifying are is clearer and there is a higher level of detail. However, and even though this evaluation is the common approach in the literature, it does not prove that sharper or less noisy visualizations are better. It could be the case that a noisier visualization is more faithful to what the neural network has learned. Because of this, a quantitative evaluation has been done.
+It is noticeable that the proposed techniques reduce the noise and produce sharper visualization than the original saliency map. The shape of the objects that the neural network is classifying is more defined and exhibits a higher level of detail. Notwithstanding, even though this evaluation is typical in the literature, it does not prove them better. It could be the case that a noisier visualization is more faithful to what the neural network has learned to focus on. This is why a quantitative evaluation is required.
 
 \subsection{Quantitative evaluation}
+There have been some efforts in the literature to formulate metrics that measure the effectiveness of local interpretability techniques. While Ancona~et~al.~\cite{Ancona2018} develop on the desirable properties of interpretability methods,~\cite{Petsiuk2018} and~\cite{hookerBenchmarkInterpretabilityMethods2019} actually propose a metric to compare techniques. Specifically,~\cite{Petsiuk2018} suggests using a metric called deletion that removes pixels in descending order of importance ---according to the technique under evaluation--- and recomputes the probability of the correct output for each fraction of deleted pixels. Deleted pixels are either replaced with a constant value (e.g., black or gray) or random noise. Hooker~et~al.~\cite{hookerBenchmarkInterpretabilityMethods2019} claim that it is necessary to retrain the model after deleting pixels to maintain the same distribution in the training and the test sets. However, retraining affects the network's weights and the metric no longer provides a good estimate of how the original model behaves if some pixels are occluded.
 
-Even though historically the evaluation of saliency maps has been qualitative, there have been efforts to try to formulate metrics to measure the effectiveness of these techniques, as in~\cite{petsiukRISERandomizedInput},~\cite{hookerBenchmarkInterpretabilityMethods2019} or~\cite{anconaBetterUnderstandingGradientbased2018}. While in~\cite{anconaBetterUnderstandingGradientbased2018} it is studied a desirable property of explainability techniques, in~\cite{petsiukRISERandomizedInput} and~\cite{hookerBenchmarkInterpretabilityMethods2019} the objective is to formulate a metric that could indicate which technique is better. 
+%\begin{figure}[p]
+%    \centering
+%    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/0.pdf}} \hfill
+%    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
+%    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/0.pdf}} \hfill
+%    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
+%    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/0.pdf}} \hfill
+%    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/0.pdf}} \\
+%    \caption{Black-Deletion Benchmark.}
+%    \label{fig: black-deletion benchmark}
+%\end{figure}
 
-Specifically,~\cite{petsiukRISERandomizedInput} proposed a metric called deletion that deletes pixels in descending order of importance (according to the explainability technique) and recomputes the probability of the correct output for each fraction of deleted pixels. For the mentioned deletion researchers fixed the values of these pixels to a constant, as black or gray, or to random noise. 
+%\begin{figure}[p]
+%    \centering
+%    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/1.pdf}} \hfill
+%    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
+%    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/1.pdf}} \hfill
+%    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
+%    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/1.pdf}} \hfill
+%    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/1.pdf}} \\
+%    \caption{White-Deletion Benchmark.}
+%    \label{fig: white-deletion benchmark}
+%\end{figure}
 
-In~\cite{hookerBenchmarkInterpretabilityMethods2019} it was proposed a variation of the deletion metric. In this paper it was explained that it was necessary to retrain the model for each portion of deleted pixels to maintain the same distribution in the training set and the test set, where the explainability technique was being measured. However, in the retraining, the model can learn new other things, so the metric is not measuring how well the explainability technique represents what the neural network has learned because the information used by the model to classify can be different now.
+The main drawback of the deletion metric is that the value of a pixel cannot be actually deleted. No matter what value pixels are replaced with, they will still affect the internal computations of the network. The replacement value introduces unknown biases unless pixels are separated in two different sets: the ones that should be brighter to improve the classification score of the original predictions (i.e., those identified by positive or active saliency maps) and the ones that should be darker (i.e., pixels in negative or inactive saliency maps). Thanks to this distinction, the meaning of replacing a pixel with white (white-deletion) or black (black-deletion) becomes instantly clear. For positive or active pixels, using white would tend to improve the classification score of the predicted class, whereas zeroing them out should severely harm the original classification. The opposite is expected to happen with negative and inactive pixels.
 
-\begin{figure}[p]
-    \centering
-    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/0.pdf}} \hfill
-    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
-    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/0.pdf}} \hfill
-    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/0.pdf}} \\
-    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/0.pdf}} \hfill
-    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/0.pdf}} \\
-    \caption{Black-Deletion Benchmark.}
-    \label{fig: black-deletion benchmark}
-\end{figure}
-
-\begin{figure}[p]
-    \centering
-    \subfloat[CIFAR-10 CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/cnn_False/val/1.pdf}} \hfill
-    \subfloat[CIFAR-10 ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
-    \subfloat[Imagenette CNN]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/cnn_False/val/1.pdf}} \hfill
-    \subfloat[Imagenette ResNet-18]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/cifar10/resnet18_False/val/1.pdf}} \\
-    \subfloat[Imagenette ResNet-18 pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/resnet18_True/val/1.pdf}} \hfill
-    \subfloat[Imagenette ConvNeXt pre-trained]{\includegraphics[width=0.475\textwidth]{../visualizations/graphs/imagenette/convnext_True/val/1.pdf}} \\
-    \caption{White-Deletion Benchmark.}
-    \label{fig: white-deletion benchmark}
-\end{figure}
-
-Going back to the deletion metric, its problem is that the value of a pixel cannot be deleted, because for a neural network any value can have some meaning, including the black, the gray or noise. Then, the value introduced can affect different pixels in different ways, introducing unknown biases. However, the separation in two different sets of pixels, the ones that should be brighter (positive and active saliency maps) to improve the classification score of the original predictions and the ones that should be darker (negative and inactive saliency maps), opens the door to implement the deletion technique knowing what the introduced value means. In this paper the two proposed metrics are called black-deletion and white-deletion.
-
-First, the new techniques give the user the two different sets of pixels (should be brighter and should be darker). Since increasing the value (making them brighter) of some of them improves the classification score of the predicted classes, putting them to zero (black-deletion) should harm severely the original classification. Analogously, putting the pixels that should be darker to improve the original classification to one (white deletion) should show also harm severely the original classification. Therefore, black-deletion will help to measure the effect of positive and active salience maps, while white deletion will be used to measure negative and inactive salience maps. Both metrics will measure the change in the predicted classes with respect to the original classification (something that here has been called allegiance) for the following fractions of deleted pixels: [0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]. The interval to measure the deletion is 10\%, since based on the literature~\cite{hookerBenchmarkInterpretabilityMethods2019} it a common interval, with a higher level of detail at the beginning to show the sharp decrease in the first deletions. These can be appreciated in Figure~\ref{fig: black-deletion benchmark} and Figure~\ref{fig: white-deletion benchmark}. 
-
-In the graphs it can be seen that the behavior is the expected, meaning that the selection of positive, negative, active and inactive gradients worked. As expected, the decrease in allegiance for black-deletion is greater for active and positive than for the original saliency map. Analogously, the decrease in allegiance for white-deletion is greater for inactive and negative saliency maps than for the original ones. This proves that the pixels identified.
+Both black- (\autoref{fig: black-deletion benchmark}) and white-deletion (\autoref{fig: white-deletion benchmark}) measure the change in the predicted classes with respect to the original classification, which we have decided to coin \emph{allegiance}. Using the test set ---the results for the training set can be found in \ref{sec:black-deletion and white-deletion for training set}---, pixels are removed in descending order of importance in blocks of~10\% as suggested in~\cite{hookerBenchmarkInterpretabilityMethods2019}, except for the initial interval, in which we deem it necessary to study the response in more detail. The behavior observed in the graphs corresponds to what we expected. The decrease in allegiance for black-deletion is greater for active and positive saliency maps than for the standard implementation. Likewise, the decrease in allegiance for white-deletion is greater for inactive and negative saliency maps. Apparently, this confirms the hypothesis that the pixels identified are more important to the network when the sign of the gradients is taken into account.
 
 \begin{table}
   \centering
@@ -444,18 +433,15 @@ In the graphs it can be seen that the behavior is the expected, meaning that the
   \end{tabular*}
 \end{table}
 
-An important thing to note is that in the graphs it can be seen that for active and inactive saliency maps there is almost no change after 50\% of the pixels have been deleted. The reason for this is that in the active and inactive there are a lot of pixels that are black (because its derivative with respect to the original predicted class is not greater (active) or lower (inactive) than for any other class). Therefore, after all the pixels from the active and inactive saliency maps are deleted there is no change since the pixels that have zero value in the saliency maps were ignored in the deletion (deleting a pixel that does not belong to the saliency map variant does not give us any information). The same happens for the positive and negative later, around 80\%, showing that there are more pixels with positive and negative derivatives, than pixels with a derivative higher or lower with respect to the original class than for any other class.
+It is important to note that that for active and inactive saliency maps the allegiance stops decreasing after around 50\% of the pixels have been deleted. The reason is that many pixels have a value of zero because their derivative with respect to the original predicted class is not the largest (for the active saliency map) or the smallest (for the inactive). Hence, after all the non-zero pixels from the active and inactive saliency maps have been deleted there is nothing else to remove. The same happens for the positive and negative saliency maps at approximately 80\%.
 
-To give concrete numbers, the area under the curve was also calculated and showed in Table~\ref{tab:auc for black deletions in saliency maps} for black-deletion and in Table~\ref{tab:auc for white deletions in saliency maps} for white-deletion. The intuition of what would happen in the experiments was correct and it has been shown that the new proposed method help the user in identifying pixels that, by being brighter or darker, help the confidence of original predicted classes. However, although the improvement over the original saliency map is clear, it is surprising how positive and negative sometimes work better than active and inactive. The main reason for this could be that these metrics are still not perfect, since the value used for the deletion are the extreme values, and pixels that may improve the classification by being brighter or darker, but that it is not the same that putting their value to white or black. However, from all the possible values to choose, we find most reasonable use the darkest and the brightest value since any pixel can be darker and brighter than them, respectively. Even so, it is still better than the other metrics use in the literature since it introduces a know alteration in the image instead of an unknown one.
-
-Note that every computation shown in this section is based on the test dataset. To see the ones from the training, that have similar results, go to Appendix~\ref{sec:black-deletion and white-deletion for training set}.
-
+To provide concrete numbers, the area under the curve is shown in \autoref{tab:auc for black deletions in saliency maps} for black-deletion and in \autoref{tab:auc for white deletions in saliency maps} for white-deletion. The results support the hypothesis that the proposed saliency maps better identify those pixels that, when made brighter or darker as appropriate, increase the confidence of the originally predicted class. Interestingly, although the improvement over the standard saliency map is clear, it is surprising how positive and negative saliency maps sometimes work better than active and inactive. It could still be due to the use of the extremes (i.e., either black or white) as replacement values, instead of slightly darker or brighter variants of the original pixel colors. Nevertheless, the results are still more interpretable than those provided by other metrics proposed in the literature because the effect of the alteration on the image is now known.
 
 \section{Conclusion and future work}
 \label{sec:conclusions and future research}
-To sum up, in this paper it has been shown that there is more information hidden in the gradients, both in the sign of the gradients and in the gradients of other classes. This paper is the first study that takes into account the sign and the other classes in the explainability, which seem to be crucial for extracting all the information contained in saliency maps. Therefore, it is not necessary to create complicated techniques to create a sharper visualization that shows what the model is looking when it is classifying. Moreover, this can be the starting point of a reformulation of all saliency variants, since it can produce improvements in all the techniques that are based on the gradients. However, this is out of the scope of this article.
+There is more information hidden in the gradients of a saliency map than is usually exploited, both in the sign of the individual pixels and in the gradients with respect to the incorrect classes. Separating pixels according to these dimensions could pave the way to improving the quality of the insights extracted, not only from saliency maps but also from other local interpretability techniques based on gradients.
 
-Another contribution worth of mentioning is that taking into account the sign or the other classes allows comparing different techniques with the proposed metric, black-deletion and white-deletion. These metrics are the first benchmark that introduces an alteration knowing its meaning, instead of introducing an unknown bias. Therefore, they can also be used to compare more faithfully which are the best saliency techniques. We leave these for future research.
+Furthermore, instead of arbitrarily choosing black to occlude pixels as it is typically done, the proposed approach allows to better understand the effect of replacing pixels with black or white, which can positively or negatively contribute to the classification score depending on the gradient sign. Analyzing the faithfulness of the different variations of the saliency map from this point of view is left as future work.
 
 
 \bibliographystyle{elsarticle-num} 
@@ -465,9 +451,8 @@ Another contribution worth of mentioning is that taking into account the sign or
 
 \section{Signed saliency map examples}
 \label{sec:signed saliency map examples}
-In this appendix the examples for each technique will be showed for all the combinations:
 
-\section{Black-Deletion and White-Deletion for Trainning set}
+\section{Black-deletion and white-deletion on the training set}
 \label{sec:black-deletion and white-deletion for training set}
 
 % \begin{figure}[p]
