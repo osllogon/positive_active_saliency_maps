@@ -1,7 +1,9 @@
 matplotlib==3.6.1
 numpy==1.23.4
 pandas==1.5.1
+requests==2.31.0
 tensorboard==2.10.1
 torch==1.13.1
 torchvision==0.14.1
 tqdm==4.64.1
+types-requests==2.31.0.2

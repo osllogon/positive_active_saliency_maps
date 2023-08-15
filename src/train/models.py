@@ -2,18 +2,21 @@
 import torch
 import torchvision
 
+# other libraries
+from typing import Tuple
+
 
 class Resnet18(torch.nn.Module):
     """
     This class is a model based in resnet18 for classification
-    
+
     Attributes
     ----------
     cnn_net : torch.nn.Module
         convolutional layers part of the model
     classifier : torch.nn.Linear
         final linear layer for classification
-        
+
     Methods
     -------
     forward -> torch.Tensor
@@ -22,7 +25,7 @@ class Resnet18(torch.nn.Module):
     def __init__(self, output_channels: int = 10, pretrained: bool = True):
         """
         Constructor of Resnet18 class
-        
+
         Parameters
         ----------
         input_channels : int, optional
@@ -36,7 +39,9 @@ class Resnet18(torch.nn.Module):
 
         # load pretrained resnet18
         if pretrained:
-            self.cnn_net = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT)
+            self.cnn_net = torchvision.models.resnet18(
+                weights=torchvision.models.ResNet18_Weights.DEFAULT
+            )
             # self.model = torchvision.models.alexnet(weights=torchvision.models.AlexNet_Weights.DEFAULT)
         else:
             self.cnn_net = torchvision.models.resnet18(weights=None)
@@ -47,12 +52,12 @@ class Resnet18(torch.nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
         This method computes the outputs of the neural net
-        
+
         Parameters
         ----------
         inputs : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -65,18 +70,18 @@ class Resnet18(torch.nn.Module):
 
         return outputs
 
-    
+
 class DenseNet121(torch.nn.Module):
     """
     This class is a model based in DenseNet 121 for classification
-    
+
     Attributes
     ----------
     cnn_net : torch.nn.Module
         convolutional layers part of the model
     classifier : torch.nn.Linear
         final linear layer for classification
-        
+
     Methods
     -------
     forward -> torch.Tensor
@@ -85,7 +90,7 @@ class DenseNet121(torch.nn.Module):
     def __init__(self, output_channels: int = 10, pretrained: bool = True):
         """
         Constructor of Resnet18 class
-        
+
         Parameters
         ----------
         input_channels : int, optional
@@ -99,7 +104,9 @@ class DenseNet121(torch.nn.Module):
 
         # load pretrained resnet18
         if pretrained:
-            self.cnn_net = torchvision.models.densenet121(weights=torchvision.models.DenseNet121_Weights.DEFAULT)
+            self.cnn_net = torchvision.models.densenet121(
+                weights=torchvision.models.DenseNet121_Weights.DEFAULT
+            )
         else:
             self.cnn_net = torchvision.models.densenet121(weights=None)
 
@@ -109,12 +116,12 @@ class DenseNet121(torch.nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
         This method computes the outputs of the neural net
-        
+
         Parameters
         ----------
         inputs : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -126,19 +133,19 @@ class DenseNet121(torch.nn.Module):
         outputs = self.classifier(outputs)
 
         return outputs
-    
-    
+
+
 class ConvNext(torch.nn.Module):
     """
     This class is a model based in tiny ConvNext for classification
-    
+
     Attributes
     ----------
     cnn_net : torch.nn.Module
         convolutional layers part of the model
     classifier : torch.nn.Linear
         final linear layer for classification
-        
+
     Methods
     -------
     forward -> torch.Tensor
@@ -147,7 +154,7 @@ class ConvNext(torch.nn.Module):
     def __init__(self, output_channels: int = 10, pretrained: bool = True):
         """
         Constructor of ConvNext class
-        
+
         Parameters
         ----------
         input_channels : int, optional
@@ -161,7 +168,9 @@ class ConvNext(torch.nn.Module):
 
         # load pretrained resnet18
         if pretrained:
-            self.cnn_net = torchvision.models.convnext_tiny(weights=torchvision.models.ConvNeXt_Tiny_Weights.DEFAULT)
+            self.cnn_net = torchvision.models.convnext_tiny(
+                weights=torchvision.models.ConvNeXt_Tiny_Weights.DEFAULT
+            )
         else:
             self.cnn_net = torchvision.models.convnext_tiny(weights=None)
 
@@ -171,12 +180,12 @@ class ConvNext(torch.nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
         This method computes the outputs of the neural net
-        
+
         Parameters
         ----------
         inputs : torch.Tensor
             batch of images. Dimensions: [batch, channels, height, width]
-            
+
         Returns
         -------
         torch.Tensor
@@ -188,7 +197,7 @@ class ConvNext(torch.nn.Module):
         outputs = self.classifier(outputs)
 
         return outputs
-    
+
 
 class Block(torch.nn.Module):
     """
@@ -227,10 +236,16 @@ class Block(torch.nn.Module):
         self.net = torch.nn.Sequential(
             torch.nn.Conv2d(input_channels, output_channels, kernel_size=3, padding=1),
             torch.nn.ReLU(),
-            torch.nn.Conv2d(output_channels, output_channels, kernel_size=3, padding=1, stride=stride),
+            torch.nn.Conv2d(
+                output_channels,
+                output_channels,
+                kernel_size=3,
+                padding=1,
+                stride=stride,
+            ),
             torch.nn.ReLU(),
             torch.nn.Conv2d(output_channels, output_channels, kernel_size=3, padding=1),
-            torch.nn.ReLU()
+            torch.nn.ReLU(),
         )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -265,8 +280,12 @@ class CNNModel(torch.nn.Module):
     forward -> torch.Tensor
     """
 
-    def __init__(self, layers: tuple[int, int, int] = (32, 64, 128), input_channels: int = 3, 
-                 output_channels: int = 10):
+    def __init__(
+        self,
+        layers: Tuple[int, int, int] = (32, 64, 128),
+        input_channels: int = 3,
+        output_channels: int = 10,
+    ):
         """
         Constructor of the class CNNModel
 
@@ -288,7 +307,7 @@ class CNNModel(torch.nn.Module):
         module_list = [
             torch.nn.Conv2d(input_channels, 32, kernel_size=7, padding=3, stride=2),
             torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+            torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         ]
 
         # add 3 Blocks to module_list
