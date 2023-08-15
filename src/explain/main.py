@@ -7,13 +7,12 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from tqdm.auto import tqdm
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Type, Tuple, Literal, Iterator
 
 # own modules
 from src.train.utils import (
     load_cifar10_data,
     load_imagenette_data,
-    preprocess_imagenette,
     set_seed,
 )
 from src.explain.saliency_maps import (
@@ -26,37 +25,37 @@ from src.explain.saliency_maps import (
 from src.explain.utils import format_image
 
 # set device
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 # set all seeds and number of threads
 set_seed(42)
 torch.set_num_threads(8)
 
 # static variables
-DATA_PATH = {"cifar10": "data/cifar10", "imagenette": "data/imagenette"}
+DATA_PATH: Dict[str, str] = {"cifar10": "data/cifar10", "imagenette": "data/imagenette"}
 NUMBER_OF_CLASSES = 10
-METHODS = {
+METHODS: Dict[str, Type[SaliencyMap]] = {
     "saliency_map": SaliencyMap,
     "positive_saliency_map": PositiveSaliencyMap,
     "negative_saliency_map": NegativeSaliencyMap,
     "active_saliency_map": ActiveSaliencyMap,
     "inactive_saliency_map": InactiveSaliencyMap,
 }
-PERCENTAGES = [0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+PERCENTAGES: Tuple[float, ...] = (0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 
 
 def main() -> None:
     # variables
-    generate_examples = False
-    generate_graphs = True
+    generate_examples: bool = False
+    generate_graphs: bool = True
 
     # hyperparameters
-    dataset = "imagenette"
-    model_type = "convnext"
-    pretrained = True
+    dataset: Literal["cifar10", "imagenette"] = "imagenette"
+    model_type: Literal["cnn", "resnet18", "convnext"] = "convnext"
+    pretrained: bool = True
 
     # load model
-    model = torch.load(
+    model: torch.nn.Module = torch.load(
         f"./models/{dataset}/{model_type}_pretrained_{pretrained}.pt"
     ).to(device)
     model.eval()
@@ -66,21 +65,13 @@ def main() -> None:
 
     if generate_examples:
         # define paths
-        examples_path = f"{DATA_PATH[dataset]}/examples"
-        visualizations_path = "visualizations/images"
+        examples_path: str = f"{DATA_PATH[dataset]}/examples"
+        visualizations_path: str = "visualizations/images"
 
         # load data
         if dataset == "cifar10":
             train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=1)
         elif dataset == "imagenette":
-            # preprocess step
-            if not os.path.isdir(f"{DATA_PATH[dataset]}/postprocess_data"):
-                preprocess_imagenette(
-                    f"{DATA_PATH[dataset]}/original_data",
-                    f"{DATA_PATH[dataset]}/postprocess_data",
-                )
-
-            # load data
             train_data, val_data = load_imagenette_data(
                 f"{DATA_PATH[dataset]}/postprocess_data", batch_size=1
             )
@@ -88,10 +79,12 @@ def main() -> None:
         else:
             raise ValueError("Invalid dataset value")
 
-        iterator = iter(val_data)
-        image, label = next(iterator)
-        height = image.shape[2]
-        width = image.shape[3]
+        # get height and width
+        iterator: Iterator = iter(val_data)
+        image: torch.Tensor
+        image, _ = next(iterator)
+        height: int = image.shape[2]
+        width: int = image.shape[3]
 
         # create directory for saving correct examples if it does not exist
         if not os.path.isdir(examples_path):
@@ -105,10 +98,11 @@ def main() -> None:
             ]
 
             # iter over the dataset looking for correct examples
+            label: torch.Tensor
             for image, label in val_data:
                 image = image.to(device)
                 label = label.to(device)
-                output = torch.argmax(model(image), dim=1)
+                output: torch.Tensor = torch.argmax(model(image), dim=1)
 
                 # ser correct examples values
                 if output == label:
@@ -116,8 +110,12 @@ def main() -> None:
                         examples[label] = image
 
             # write examples in memory
-            i = 0
+            i: int = 0
+            example: Optional[torch.Tensor]
             for example in examples:
+                if example is None:
+                    raise ValueError("Unable to find examples for each class")
+                
                 torch.save(example, f"{examples_path}/{i}.pt")
                 i += 1
 
@@ -242,14 +240,6 @@ def main() -> None:
                     DATA_PATH[dataset], batch_size=128, num_workers=4
                 )
             elif dataset == "imagenette":
-                # preprocess step
-                if not os.path.isdir(f"{DATA_PATH[dataset]}/postprocess_data"):
-                    preprocess_imagenette(
-                        f"{DATA_PATH[dataset]}/original_data",
-                        f"{DATA_PATH[dataset]}/postprocess_data",
-                    )
-
-                # load data
                 train_data, val_data = load_imagenette_data(
                     f"{DATA_PATH[dataset]}/postprocess_data",
                     batch_size=128,

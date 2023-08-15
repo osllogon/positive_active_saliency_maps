@@ -12,6 +12,8 @@ import requests
 import tarfile
 import shutil
 from typing import Tuple
+from requests.models import Response
+from tarfile import TarFile
 
 # other libraries
 from PIL import Image
@@ -20,23 +22,17 @@ from PIL import Image
 def load_cifar10_data(
     path: str, batch_size: int = 128, num_workers: int = 0
 ) -> Tuple[DataLoader, DataLoader]:
-    """_summary_
+    """
+    This function loads the cifar10 dataset
 
-    Parameters
-    ----------
-    path : str
-        _description_
-    color_space : str
-        _description_
-    batch_size : int, optional
-        _description_, by default 128
-    num_workers : int, optional
-        _description_, by default 0
+    Args:
+        path: path for saving the dataset
+        batch_size: batch size of the dataloaders. Defaults to 128.
+        num_workers: numbe of workers of the dataloaders. Defaults to 0.
 
-    Returns
-    -------
-    Tuple[DataLoader, DataLoader]
-        _description_
+    Returns:
+        train dataloader
+        validation dataloader
     """
 
     transformations = transforms.Compose([transforms.ToTensor()])
@@ -61,17 +57,12 @@ class ImagenetteDataset(Dataset):
         """
         Constructor of ImagenetteDataset
 
-        Parameters
-        ----------
-        path : str
-            path of the dataset
-        color_space : str
-            color space for loading the images
+        Args:
+            path: path of the dataset
+            color_space: color space for loading the images
 
-        Raises
-        ------
-        FileNotFoundError
-            if the path of the dataset does not exist
+        Raises:
+            FileNotFoundError: if the path of the dataset does not exist
         """
 
         self.path = path
@@ -81,9 +72,7 @@ class ImagenetteDataset(Dataset):
         """
         This method returns the length of the dataset
 
-        Returns
-        -------
-        int
+        Returns:
             length of dataset
         """
 
@@ -93,22 +82,17 @@ class ImagenetteDataset(Dataset):
         """
         This method loads an item based on the index
 
-        Parameters
-        ----------
-        index : int
-            index of the element in the dataset
+        Args:
+            index: index of the element in the dataset
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             image. Dimensions: [channels, height, width]
-        int
             label
         """
 
         # load image path and label
-        image_path = f"{self.path}/{self.names[index]}"
-        label = int(self.names[index].split("_")[0])
+        image_path: str = f"{self.path}/{self.names[index]}"
+        label: int = int(self.names[index].split("_")[0])
 
         # load image
         transformations = transforms.Compose([transforms.ToTensor()])
@@ -145,13 +129,13 @@ def load_imagenette_data(
         target_path: str = f"{path}/imagenette2.tgz"
 
         # download tar file
-        response = requests.get(url, stream=True)
+        response: Response = requests.get(url, stream=True)
         if response.status_code == 200:
             with open(target_path, "wb") as f:
                 f.write(response.raw.read())
 
         # extract tar file
-        tar_file = tarfile.open(target_path)
+        tar_file: TarFile = tarfile.open(target_path)
         tar_file.extractall(path)
         tar_file.close()
 
@@ -200,15 +184,12 @@ def load_imagenette_data(
 def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:
     """
     This method computes accuracy from logits and labels
-    Parameters
-    ----------
-    logits : torch.Tensor
-        batch of logits. Dimensions: [batch, number of classes]
-    labels : torch.Tensor
-        batch of labels. Dimensions: [batch]
-    Returns
-    -------
-    float
+    
+    Args:
+        logits: batch of logits. Dimensions: [batch, number of classes]
+        labels: batch of labels. Dimensions: [batch]
+        
+    Returns:
         accuracy of predictions
     """
 
@@ -225,9 +206,8 @@ def set_seed(seed: int) -> None:
     """
     This function sets a seed and ensure a deterministic behavior
 
-    Parameters
-    ----------
-    seed : int
+    Args:
+        seed: seed number to fix radomness 
     """
 
     # set seed in numpy and random

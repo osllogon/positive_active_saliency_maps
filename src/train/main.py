@@ -18,21 +18,29 @@ from src.train.utils import (
 )
 
 # set device
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 # set all seeds and set number of threads
 set_seed(42)
 torch.set_num_threads(8)
 
 # static variables
-DATA_PATH = {
-    "cifar10": "./data/cifar10",
-    "imagenette": "./data/imagenette",
+DATA_PATH: Dict[str, str] = {
+    "cifar10": "data/cifar10",
+    "imagenette": "data/imagenette",
 }
-NUMBER_OF_CLASSES = 10
+NUMBER_OF_CLASSES: int = 10
 
 
 def main() -> None:
+    """
+    This function is the main program for the training
+
+    Raises:
+        ValueError: Invalid dataset value
+        ValueError: Invalid model type
+    """
+    
     # variables
     dataset: Literal["cifar10", "imagenette"] = "imagenette"
 
