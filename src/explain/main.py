@@ -25,7 +25,9 @@ from src.explain.saliency_maps import (
 from src.explain.utils import format_image
 
 # set device
-device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = (
+    torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+)
 
 # set all seeds and number of threads
 set_seed(42)
@@ -41,7 +43,21 @@ METHODS: Dict[str, Type[SaliencyMap]] = {
     "active_saliency_map": ActiveSaliencyMap,
     "inactive_saliency_map": InactiveSaliencyMap,
 }
-PERCENTAGES: Tuple[float, ...] = (0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+PERCENTAGES: Tuple[float, ...] = (
+    0,
+    0.03,
+    0.05,
+    0.07,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+)
 
 
 def main() -> None:
@@ -115,7 +131,7 @@ def main() -> None:
             for example in examples:
                 if example is None:
                     raise ValueError("Unable to find examples for each class")
-                
+
                 torch.save(example, f"{examples_path}/{i}.pt")
                 i += 1
 

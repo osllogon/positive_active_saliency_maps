@@ -184,11 +184,11 @@ def load_imagenette_data(
 def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:
     """
     This method computes accuracy from logits and labels
-    
+
     Args:
         logits: batch of logits. Dimensions: [batch, number of classes]
         labels: batch of labels. Dimensions: [batch]
-        
+
     Returns:
         accuracy of predictions
     """
@@ -207,7 +207,7 @@ def set_seed(seed: int) -> None:
     This function sets a seed and ensure a deterministic behavior
 
     Args:
-        seed: seed number to fix radomness 
+        seed: seed number to fix radomness
     """
 
     # set seed in numpy and random

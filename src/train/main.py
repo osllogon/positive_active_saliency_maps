@@ -18,7 +18,9 @@ from src.train.utils import (
 )
 
 # set device
-device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = (
+    torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+)
 
 # set all seeds and set number of threads
 set_seed(42)
@@ -40,7 +42,7 @@ def main() -> None:
         ValueError: Invalid dataset value
         ValueError: Invalid model type
     """
-    
+
     # variables
     dataset: Literal["cifar10", "imagenette"] = "imagenette"
 
