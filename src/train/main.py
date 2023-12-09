@@ -12,8 +12,7 @@ from typing import Dict, Union, Literal
 from src.train.models import Resnet18, ConvNext, CNNModel
 from src.train.utils import (
     accuracy,
-    load_cifar10_data,
-    load_imagenette_data,
+    load_data,
     set_seed,
 )
 
@@ -28,6 +27,7 @@ torch.set_num_threads(8)
 
 # static variables
 DATA_PATH: Dict[str, str] = {
+    "mnist": "data/mnist",
     "cifar10": "data/cifar10",
     "imagenette": "data/imagenette",
 }
@@ -44,12 +44,12 @@ def main() -> None:
     """
 
     # variables
-    dataset: Literal["cifar10", "imagenette"] = "imagenette"
+    dataset: Literal["mnist", "cifar10", "imagenette"] = "mnist"
 
     # hyperparameters
     lr: float = 1e-3
-    model_type: Literal["cnn", "resnet18", "convnext"] = "resnet18"
-    pretrained: bool = True
+    model_type: Literal["cnn", "resnet18", "convnext"] = "cnn"
+    pretrained: bool = False
     epochs: int = 50
 
     # empty nohup file
@@ -58,26 +58,24 @@ def main() -> None:
     # check device
     print(f"device: {device}")
 
-    if dataset == "cifar10":
-        train_data, val_data = load_cifar10_data(
-            DATA_PATH[dataset], batch_size=128, num_workers=4
-        )
-    elif dataset == "imagenette":
-        train_data, val_data = load_imagenette_data(
-            DATA_PATH[dataset], batch_size=128, num_workers=4
-        )
+    # load data
+    train_data, val_data = load_data(
+        dataset, DATA_PATH[dataset], batch_size=128, num_workers=4
+    )
 
-    else:
-        raise ValueError("Invalid dataset value")
+    # define number of channels
+    input_channels: int = 1 if dataset == "mnist" else 3
 
     # define model name and tensorboard writer
     name = f"{model_type}_pretrained_{pretrained}"
     writer = SummaryWriter(f"runs/{dataset}/{name}")
 
     # define model
-    model: Union[Resnet18, ConvNext, CNNModel]
+    model: Union[CNNModel, Resnet18, ConvNext]
     if model_type == "cnn":
-        model = CNNModel(output_channels=NUMBER_OF_CLASSES).to(device)
+        model = CNNModel(
+            output_channels=NUMBER_OF_CLASSES, input_channels=input_channels
+        ).to(device)
     elif model_type == "resnet18":
         model = Resnet18(NUMBER_OF_CLASSES, pretrained).to(device)
     elif model_type == "convnext":

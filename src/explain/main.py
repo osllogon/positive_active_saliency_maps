@@ -10,11 +10,8 @@ from tqdm.auto import tqdm
 from typing import List, Optional, Dict, Type, Tuple, Literal, Iterator
 
 # own modules
-from src.train.utils import (
-    load_cifar10_data,
-    load_imagenette_data,
-    set_seed,
-)
+from src.train.utils import load_data, set_seed
+
 from src.explain.saliency_maps import (
     SaliencyMap,
     PositiveSaliencyMap,
@@ -34,7 +31,11 @@ set_seed(42)
 torch.set_num_threads(8)
 
 # static variables
-DATA_PATH: Dict[str, str] = {"cifar10": "data/cifar10", "imagenette": "data/imagenette"}
+DATA_PATH: Dict[str, str] = {
+    "mnist": "data/mnist",
+    "cifar10": "data/cifar10",
+    "imagenette": "data/imagenette",
+}
 NUMBER_OF_CLASSES = 10
 METHODS: Dict[str, Type[SaliencyMap]] = {
     "saliency_map": SaliencyMap,
@@ -66,9 +67,9 @@ def main() -> None:
     generate_graphs: bool = True
 
     # hyperparameters
-    dataset: Literal["cifar10", "imagenette"] = "imagenette"
-    model_type: Literal["cnn", "resnet18", "convnext"] = "convnext"
-    pretrained: bool = True
+    dataset: Literal["mnist", "cifar10", "imagenette"] = "mnist"
+    model_type: Literal["cnn", "resnet18", "convnext"] = "cnn"
+    pretrained: bool = False
 
     # load model
     model: torch.nn.Module = torch.load(
@@ -85,15 +86,9 @@ def main() -> None:
         visualizations_path: str = "visualizations/images"
 
         # load data
-        if dataset == "cifar10":
-            train_data, val_data = load_cifar10_data(DATA_PATH[dataset], batch_size=1)
-        elif dataset == "imagenette":
-            train_data, val_data = load_imagenette_data(
-                f"{DATA_PATH[dataset]}/postprocess_data", batch_size=1
-            )
-
-        else:
-            raise ValueError("Invalid dataset value")
+        train_data, val_data = load_data(
+            dataset, DATA_PATH[dataset], batch_size=128, num_workers=4
+        )
 
         # get height and width
         iterator: Iterator = iter(val_data)
@@ -251,19 +246,9 @@ def main() -> None:
         # generate data if it does not exist to avoid doing the computation again
         if not os.path.exists(f"{DATA_PATH[dataset]}/saved/{model_type}_{pretrained}"):
             # load data
-            if dataset == "cifar10":
-                train_data, val_data = load_cifar10_data(
-                    DATA_PATH[dataset], batch_size=128, num_workers=4
-                )
-            elif dataset == "imagenette":
-                train_data, val_data = load_imagenette_data(
-                    f"{DATA_PATH[dataset]}/postprocess_data",
-                    batch_size=128,
-                    num_workers=4,
-                )
-
-            else:
-                raise ValueError("Invalid dataset value")
+            train_data, val_data = load_data(
+                dataset, DATA_PATH[dataset], batch_size=128, num_workers=4
+            )
 
             # define progress bar
             progress_bar = tqdm(
@@ -328,7 +313,8 @@ def main() -> None:
                             value = value.view(value.shape[0], 1, 1)
                             mask = (saliency_maps > value) * (saliency_maps != 0)
                             mask = mask.unsqueeze(1)
-                            mask = mask.repeat(1, 3, 1, 1)
+                            num_channels: int = 1 if dataset == "mnist" else 3
+                            mask = mask.repeat(1, num_channels, 1, 1)
 
                             for subs_value in [0, 1]:
                                 inputs = images.clone()
