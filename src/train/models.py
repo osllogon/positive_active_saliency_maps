@@ -8,30 +8,24 @@ from typing import Tuple
 
 class Resnet18(torch.nn.Module):
     """
-    This class is a model based in resnet18 for classification
+    This class is a model based in resnet18 for classification.
 
-    Attributes
-    ----------
-    cnn_net : torch.nn.Module
-        convolutional layers part of the model
-    classifier : torch.nn.Linear
-        final linear layer for classification
-
-    Methods
-    -------
-    forward -> torch.Tensor
+    Attributes:
+        cnn_net (torch.nn.Module): convolutional layers part of the
+            model.
+        classifier (torch.nn.Module): final linear layer for
+            classification.
     """
 
-    def __init__(self, output_channels: int = 10, pretrained: bool = True):
+    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
         """
-        Constructor of Resnet18 class
+        Constructor of Resnet18 class.
 
-        Parameters
-        ----------
-        input_channels : int, optional
-            input channels for the first conv layer. Deafult value: 3
-        pretrained : bool, Optional
-            bool that indicates if the resnet18 is pretrained with Imagenet data
+        Args:
+            input_channels: numberinput channels for the first
+                conv layer. Deafult to 3.
+            pretrained: bool that indicates if the resnet18 is
+                pretrained with Imagenet data.
         """
 
         # call super class constructor
@@ -42,7 +36,7 @@ class Resnet18(torch.nn.Module):
             self.cnn_net = torchvision.models.resnet18(
                 weights=torchvision.models.ResNet18_Weights.DEFAULT
             )
-            # self.model = torchvision.models.alexnet(weights=torchvision.models.AlexNet_Weights.DEFAULT)
+
         else:
             self.cnn_net = torchvision.models.resnet18(weights=None)
 
@@ -51,17 +45,14 @@ class Resnet18(torch.nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
-        This method computes the outputs of the neural net
+        This method computes the outputs of the neural net.
 
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            batch of images. Dimensions: [batch, channels, height, width]
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
 
-        Returns
-        -------
-        torch.Tensor
-            batch of logits. Dimensions: [batch, number of classes]
+        Returns:
+            batch of logits. Dimensions: [batch, number of classes].
         """
 
         # compute output
@@ -73,30 +64,24 @@ class Resnet18(torch.nn.Module):
 
 class DenseNet121(torch.nn.Module):
     """
-    This class is a model based in DenseNet 121 for classification
+    This class is a model based in DenseNet 121 for classification.
 
-    Attributes
-    ----------
-    cnn_net : torch.nn.Module
-        convolutional layers part of the model
-    classifier : torch.nn.Linear
-        final linear layer for classification
-
-    Methods
-    -------
-    forward -> torch.Tensor
+    Attributes:
+        cnn_net (torch.nn.Module): convolutional layers part of the
+            model.
+        classifier (torch.nn.Module): final linear layer for
+            classification.
     """
 
-    def __init__(self, output_channels: int = 10, pretrained: bool = True):
+    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
         """
-        Constructor of Resnet18 class
+        Constructor of Resnet18 class.
 
-        Parameters
-        ----------
-        input_channels : int, optional
-            input channels for the first conv layer. Deafult value: 3
-        pretrained : bool, Optional
-            bool that indicates if the resnet18 is pretrained with Imagenet data
+        Args:
+            input_channels: input channels for the first conv layer.
+                Deafults to 3.
+            pretrained: bool that indicates if the resnet18 is
+                pretrained with Imagenet data.
         """
 
         # call super class constructor
@@ -115,17 +100,14 @@ class DenseNet121(torch.nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
-        This method computes the outputs of the neural net
+        This method computes the outputs of the neural net.
 
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            batch of images. Dimensions: [batch, channels, height, width]
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
 
-        Returns
-        -------
-        torch.Tensor
-            batch of logits. Dimensions: [batch, number of classes]
+        Returns:
+            batch of logits. Dimensions: [batch, number of classes].
         """
 
         # compute output
@@ -139,28 +121,22 @@ class ConvNext(torch.nn.Module):
     """
     This class is a model based in tiny ConvNext for classification
 
-    Attributes
-    ----------
-    cnn_net : torch.nn.Module
-        convolutional layers part of the model
-    classifier : torch.nn.Linear
-        final linear layer for classification
-
-    Methods
-    -------
-    forward -> torch.Tensor
+    Attributes:
+        cnn_net (torch.nn.Module): convolutional layers part of the
+            model
+        classifier (torch.nn.Module): final linear layer for
+            classification
     """
 
-    def __init__(self, output_channels: int = 10, pretrained: bool = True):
+    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
         """
-        Constructor of ConvNext class
+        Constructor of ConvNext class.
 
-        Parameters
-        ----------
-        input_channels : int, optional
-            input channels for the first conv layer. Deafult value: 3
-        pretrained : bool, Optional
-            bool that indicates if the resnet18 is pretrained with Imagenet data
+        Args:
+            input_channels: input channels for the first conv layer.
+                Deafults to 3.
+            pretrained: bool that indicates if the resnet18 is
+                pretrained with Imagenet data.
         """
 
         # call super class constructor
@@ -179,17 +155,14 @@ class ConvNext(torch.nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
-        This method computes the outputs of the neural net
+        This method computes the outputs of the neural net.
 
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            batch of images. Dimensions: [batch, channels, height, width]
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
 
-        Returns
-        -------
-        torch.Tensor
-            batch of logits. Dimensions: [batch, number of classes]
+        Returns:
+            batch of logits. Dimensions: [batch, number of classes].
         """
 
         # compute output
@@ -201,32 +174,21 @@ class ConvNext(torch.nn.Module):
 
 class Block(torch.nn.Module):
     """
-    Neural net block composed of 3x(conv(kernel 3) + ReLU)
+    Neural net block composed of 3x(conv(kernel 3) + ReLU).
 
-    Attributes
-    ----------
-    self.net : torch.nn.Sequential
-        neural net
-    Methods
-    -------
-    forward -> torch.Tensor
+    Args
+        net (torch.nn.Module): neural net.
     """
 
     def __init__(self, input_channels: int, output_channels: int, stride: int) -> None:
         """
-        Constructor of Block class
+        Constructor of Block class.
 
-        Parameters
-        ----------
-        input_channels : int
-            input channels for SuperTuxBlock
-        output_channels : int
-            output channels for SuperTuxBlock
-        stride : int
-            stride for the second convolution of the SuperTuxBlock
-        Returns
-        -------
-        None
+        Args:
+            input_channels: input channels for SuperTuxBlock.
+            output_channels: output channels for SuperTuxBlock.
+            stride: stride for the second convolution of the
+                SuperTuxBlock.
         """
 
         # call torch.nn.Module constructor
@@ -250,15 +212,15 @@ class Block(torch.nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
-        Method that returns the output of the neural net
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            batch of tensors. Dimensions: [batch, input_channels, height, width]
-        Returns
-        -------
-        torch.Tensor
-            batch of tensors. Dimensions: [batch, output_channels, (height - 1)/stride + 1, (width - 1)/stride + 1]
+        Method that returns the output of the neural net.
+
+        Args:
+            inputs: batch of tensors.
+                Dimensions: [batch, input_channels, height, width]
+
+        Returns:
+            batch of tensors. Dimensions: [batch, output_channels,
+                (height - 1)/stride + 1, (width - 1)/stride + 1].
         """
 
         return self.net(inputs)
@@ -266,18 +228,14 @@ class Block(torch.nn.Module):
 
 class CNNModel(torch.nn.Module):
     """
-    Neural net composed of conv (kernel 7), ReLU, max pool (kernel 3), Block and linear.
-    Note: in the forward method, before classifier layer a GAP is performed
+    Neural net composed of conv (kernel 7), ReLU, max pool (kernel 3),
+    Block and linear. Note: in the forward method, before classifier
+    layer a GAP is performed.
 
-    Attributes
-    ----------
-    network : torch.nn.Sequential
-        neural net composed of conv layers, ReLUs and a max pooling
-    classifier : torch.nn.Linear
-        a linear layer
-    Methods
-    -------
-    forward -> torch.Tensor
+    Attributes:
+        network (torch.nn.Module): neural net composed of conv layers,
+            ReLUs and a max pooling.
+        classifier (torch.nn.Module): a linear layer.
     """
 
     def __init__(
@@ -285,19 +243,13 @@ class CNNModel(torch.nn.Module):
         layers: Tuple[int, int, int] = (32, 64, 128),
         input_channels: int = 3,
         output_channels: int = 10,
-    ):
+    ) -> None:
         """
-        Constructor of the class CNNModel
+        Constructor of the class CNNModel.
 
-        Parameters
-        ----------
-        layers : tuple[int, int, int]
-            output channel dimensions of the SuperTuxBlocks
-        input_channels : int
-            input channels of the model
-        Returns
-        -------
-        None
+        Args:
+            layers: output channel dimensions of the SuperTuxBlocks.
+            input_channels: input channels of the model.
         """
 
         # call torch.nn.Module constructor
@@ -325,16 +277,15 @@ class CNNModel(torch.nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
-        This method returns a batch of logits. It is the output of the neural network
+        This method returns a batch of logits.
+        It is the output of the neural network.
 
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            batch of images. Dimensions: [batch, channels, height, width]
-        Returns
-        -------
-        torch.Tensor
-            batch of logits. Dimensions: [batch, 6]
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
+
+        Returns:
+            batch of logits. Dimensions: [batch, 6].
         """
 
         # compute the features

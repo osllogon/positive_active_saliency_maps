@@ -25,7 +25,7 @@ def load_data(
 ) -> Tuple[DataLoader, DataLoader]:
     """
     This function loads the three types of datasets used in this
-    project
+    project.
 
     Args:
         dataset: dataset that is used.
@@ -37,7 +37,7 @@ def load_data(
         ValueError: Inavlid dataset.
 
     Returns:
-        tuple with two dataloaders, trian and test, in repective order
+        tuple with two dataloaders, trian and test, in repective order.
     """
 
     # load data
@@ -93,16 +93,15 @@ def load_cifar10_data(
     path: str, batch_size: int = 128, num_workers: int = 0
 ) -> Tuple[DataLoader, DataLoader]:
     """
-    This function loads the cifar10 dataset
+    This function loads the cifar10 dataset.
 
     Args:
-        path: path for saving the dataset
+        path: path for saving the dataset.
         batch_size: batch size of the dataloaders. Defaults to 128.
         num_workers: numbe of workers of the dataloaders. Defaults to 0.
 
     Returns:
-        train dataloader
-        validation dataloader
+        tuple of dataloaders, train and val, in respective order.
     """
 
     transformations = transforms.Compose([transforms.ToTensor()])
@@ -126,17 +125,18 @@ def load_imagenette_data(
     path: str, batch_size: int = 128, num_workers: int = 0
 ) -> Tuple[DataLoader, DataLoader]:
     """
-    This function returns two Dataloaders, one for train data and other for validation data for imagenette dataset
+    This function returns two Dataloaders, one for train data and
+    other for validation data for imagenette dataset.
 
     Args:
-        path: path of the dataset
-        color_space: color_space for loading the images
-        batch_size: batch size for dataloaders. Default value: 128
-        num_workers: number of workers for loading data. Default value: 0
+        path: path of the dataset.
+        color_space: color_space for loading the images.
+        batch_size: batch size for dataloaders. Default value: 128.and
+        num_workers: number of workers for loading data.
+            Default value: 0.
 
     Returns:
-        DataLoader: train data
-        DataLoader: validation data
+        tuple of dataloaders, train and val, in respective order.
     """
 
     # download folders if they are not present
@@ -204,16 +204,14 @@ def load_imagenette_data(
 class ImagenetteDataset(Dataset):
     def __init__(self, path: str) -> None:
         """
-        Constructor of ImagenetteDataset
+        Constructor of ImagenetteDataset.
 
         Args:
-            path: path of the dataset
-            color_space: color space for loading the images
-
-        Raises:
-            FileNotFoundError: if the path of the dataset does not exist
+            path: path of the dataset.
+            color_space: color space for loading the images.
         """
 
+        # set attributes
         self.path = path
         self.names = os.listdir(path)
 
@@ -253,14 +251,15 @@ class ImagenetteDataset(Dataset):
 
 def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:
     """
-    This method computes accuracy from logits and labels
+    This method computes accuracy from logits and labels.
 
     Args:
-        logits: batch of logits. Dimensions: [batch, number of classes]
-        labels: batch of labels. Dimensions: [batch]
+        logits: batch of logits.
+            Dimensions: [batch, number of classes].
+        labels: batch of labels. Dimensions: [batch].
 
     Returns:
-        accuracy of predictions
+        accuracy of predictions.
     """
 
     # compute predictions
@@ -274,10 +273,10 @@ def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:
 
 def set_seed(seed: int) -> None:
     """
-    This function sets a seed and ensure a deterministic behavior
+    This function sets a seed and ensure a deterministic behavior.
 
     Args:
-        seed: seed number to fix radomness
+        seed: seed number to fix radomness.
     """
 
     # set seed in numpy and random

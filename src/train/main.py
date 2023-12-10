@@ -36,11 +36,10 @@ NUMBER_OF_CLASSES: int = 10
 
 def main() -> None:
     """
-    This function is the main program for the training
+    This function is the main program for the training.
 
     Raises:
-        ValueError: Invalid dataset value
-        ValueError: Invalid model type
+        ValueError: Invalid model type.
     """
 
     # variables

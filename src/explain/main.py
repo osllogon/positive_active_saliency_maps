@@ -62,6 +62,14 @@ PERCENTAGES: Tuple[float, ...] = (
 
 
 def main() -> None:
+    """
+    This function is the main program of running explainability
+    experiments.
+
+    Raises:
+        ValueError: Unable to find examples for each class.
+    """
+
     # variables
     generate_examples: bool = False
     generate_graphs: bool = True
