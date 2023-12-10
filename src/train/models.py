@@ -6,172 +6,6 @@ import torchvision
 from typing import Tuple
 
 
-class Resnet18(torch.nn.Module):
-    """
-    This class is a model based in resnet18 for classification.
-
-    Attributes:
-        cnn_net (torch.nn.Module): convolutional layers part of the
-            model.
-        classifier (torch.nn.Module): final linear layer for
-            classification.
-    """
-
-    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
-        """
-        Constructor of Resnet18 class.
-
-        Args:
-            input_channels: numberinput channels for the first
-                conv layer. Deafult to 3.
-            pretrained: bool that indicates if the resnet18 is
-                pretrained with Imagenet data.
-        """
-
-        # call super class constructor
-        super().__init__()
-
-        # load pretrained resnet18
-        if pretrained:
-            self.cnn_net = torchvision.models.resnet18(
-                weights=torchvision.models.ResNet18_Weights.DEFAULT
-            )
-
-        else:
-            self.cnn_net = torchvision.models.resnet18(weights=None)
-
-        # define classifier layer
-        self.classifier = torch.nn.Linear(1000, output_channels)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """
-        This method computes the outputs of the neural net.
-
-        Args:
-            inputs: batch of images.
-                Dimensions: [batch, channels, height, width].
-
-        Returns:
-            batch of logits. Dimensions: [batch, number of classes].
-        """
-
-        # compute output
-        outputs = self.cnn_net(inputs)
-        outputs = self.classifier(outputs)
-
-        return outputs
-
-
-class DenseNet121(torch.nn.Module):
-    """
-    This class is a model based in DenseNet 121 for classification.
-
-    Attributes:
-        cnn_net (torch.nn.Module): convolutional layers part of the
-            model.
-        classifier (torch.nn.Module): final linear layer for
-            classification.
-    """
-
-    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
-        """
-        Constructor of Resnet18 class.
-
-        Args:
-            input_channels: input channels for the first conv layer.
-                Deafults to 3.
-            pretrained: bool that indicates if the resnet18 is
-                pretrained with Imagenet data.
-        """
-
-        # call super class constructor
-        super().__init__()
-
-        # load pretrained resnet18
-        if pretrained:
-            self.cnn_net = torchvision.models.densenet121(
-                weights=torchvision.models.DenseNet121_Weights.DEFAULT
-            )
-        else:
-            self.cnn_net = torchvision.models.densenet121(weights=None)
-
-        # define classifier layer
-        self.classifier = torch.nn.Linear(1000, output_channels)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """
-        This method computes the outputs of the neural net.
-
-        Args:
-            inputs: batch of images.
-                Dimensions: [batch, channels, height, width].
-
-        Returns:
-            batch of logits. Dimensions: [batch, number of classes].
-        """
-
-        # compute output
-        outputs = self.cnn_net(inputs)
-        outputs = self.classifier(outputs)
-
-        return outputs
-
-
-class ConvNext(torch.nn.Module):
-    """
-    This class is a model based in tiny ConvNext for classification
-
-    Attributes:
-        cnn_net (torch.nn.Module): convolutional layers part of the
-            model
-        classifier (torch.nn.Module): final linear layer for
-            classification
-    """
-
-    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
-        """
-        Constructor of ConvNext class.
-
-        Args:
-            input_channels: input channels for the first conv layer.
-                Deafults to 3.
-            pretrained: bool that indicates if the resnet18 is
-                pretrained with Imagenet data.
-        """
-
-        # call super class constructor
-        super().__init__()
-
-        # load pretrained resnet18
-        if pretrained:
-            self.cnn_net = torchvision.models.convnext_tiny(
-                weights=torchvision.models.ConvNeXt_Tiny_Weights.DEFAULT
-            )
-        else:
-            self.cnn_net = torchvision.models.convnext_tiny(weights=None)
-
-        # define classifier layer
-        self.classifier = torch.nn.Linear(1000, output_channels)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """
-        This method computes the outputs of the neural net.
-
-        Args:
-            inputs: batch of images.
-                Dimensions: [batch, channels, height, width].
-
-        Returns:
-            batch of logits. Dimensions: [batch, number of classes].
-        """
-
-        # compute output
-        outputs = self.cnn_net(inputs)
-        outputs = self.classifier(outputs)
-
-        return outputs
-
-
 class Block(torch.nn.Module):
     """
     Neural net block composed of 3x(conv(kernel 3) + ReLU).
@@ -296,6 +130,125 @@ class CNNModel(torch.nn.Module):
 
         # flatten output and compute linear layer output
         outputs = torch.flatten(outputs, 1)
+        outputs = self.classifier(outputs)
+
+        return outputs
+
+
+class Resnet18(torch.nn.Module):
+    """
+    This class is a model based in resnet18 for classification.
+
+    Attributes:
+        cnn_net (torch.nn.Module): convolutional layers part of the
+            model.
+        classifier (torch.nn.Module): final linear layer for
+            classification.
+    """
+
+    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
+        """
+        Constructor of Resnet18 class.
+
+        Args:
+            input_channels: numberinput channels for the first
+                conv layer. Deafult to 3.
+            pretrained: bool that indicates if the resnet18 is
+                pretrained with Imagenet data.
+        """
+
+        # call super class constructor
+        super().__init__()
+
+        # load pretrained resnet18
+        if pretrained:
+            self.cnn_net = torchvision.models.resnet18(
+                weights=torchvision.models.ResNet18_Weights.DEFAULT
+            )
+
+        else:
+            self.cnn_net = torchvision.models.resnet18(weights=None)
+
+        # define classifier layer
+        self.classifier = torch.nn.Linear(1000, output_channels)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """
+        This method computes the outputs of the neural net.
+
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
+
+        Returns:
+            batch of logits. Dimensions: [batch, number of classes].
+        """
+
+        # repeat channels if the image has only one
+        if inputs.shape[1] == 1:
+            inputs = inputs.repeat(1, 3, 1, 1)
+
+        # compute output
+        outputs = self.cnn_net(inputs)
+        outputs = self.classifier(outputs)
+
+        return outputs
+
+
+class ConvNext(torch.nn.Module):
+    """
+    This class is a model based in tiny ConvNext for classification
+
+    Attributes:
+        cnn_net (torch.nn.Module): convolutional layers part of the
+            model
+        classifier (torch.nn.Module): final linear layer for
+            classification
+    """
+
+    def __init__(self, output_channels: int = 10, pretrained: bool = True) -> None:
+        """
+        Constructor of ConvNext class.
+
+        Args:
+            input_channels: input channels for the first conv layer.
+                Deafults to 3.
+            pretrained: bool that indicates if the resnet18 is
+                pretrained with Imagenet data.
+        """
+
+        # call super class constructor
+        super().__init__()
+
+        # load pretrained resnet18
+        if pretrained:
+            self.cnn_net = torchvision.models.convnext_tiny(
+                weights=torchvision.models.ConvNeXt_Tiny_Weights.DEFAULT
+            )
+        else:
+            self.cnn_net = torchvision.models.convnext_tiny(weights=None)
+
+        # define classifier layer
+        self.classifier = torch.nn.Linear(1000, output_channels)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """
+        This method computes the outputs of the neural net.
+
+        Args:
+            inputs: batch of images.
+                Dimensions: [batch, channels, height, width].
+
+        Returns:
+            batch of logits. Dimensions: [batch, number of classes].
+        """
+
+        # repeat channels if the image has only one
+        if inputs.shape[1] == 1:
+            inputs = inputs.repeat(1, 3, 1, 1)
+
+        # compute output
+        outputs = self.cnn_net(inputs)
         outputs = self.classifier(outputs)
 
         return outputs

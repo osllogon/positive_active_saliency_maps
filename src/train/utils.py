@@ -22,4 +22,3 @@ def accuracy(logits: torch.Tensor, labels: torch.Tensor) -> float:
     result = predictions.eq(labels).float().mean().cpu().detach().numpy()
 
     return result
-

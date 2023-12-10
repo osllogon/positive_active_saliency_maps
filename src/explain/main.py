@@ -86,7 +86,7 @@ def main() -> None:
 
     # check device
     print(f"device: {device}")
-    
+
     # get number of channels
     num_channels: int = 1 if dataset == "mnist" else 3
 
