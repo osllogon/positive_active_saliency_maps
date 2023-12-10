@@ -9,12 +9,9 @@ from tqdm.auto import tqdm
 from typing import Dict, Union, Literal
 
 # own modules
+from src.utils import load_data, set_seed
 from src.train.models import Resnet18, ConvNext, CNNModel
-from src.train.utils import (
-    accuracy,
-    load_data,
-    set_seed,
-)
+from src.train.utils import accuracy
 
 # set device
 device: torch.device = (

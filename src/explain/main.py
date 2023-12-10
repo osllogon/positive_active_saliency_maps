@@ -10,8 +10,7 @@ from tqdm.auto import tqdm
 from typing import List, Optional, Dict, Type, Tuple, Literal, Iterator
 
 # own modules
-from src.train.utils import load_data, set_seed
-
+from src.utils import load_data, set_seed
 from src.explain.saliency_maps import (
     SaliencyMap,
     PositiveSaliencyMap,
@@ -71,8 +70,8 @@ def main() -> None:
     """
 
     # variables
-    generate_examples: bool = False
-    generate_graphs: bool = True
+    generate_examples: bool = True
+    generate_graphs: bool = False
 
     # hyperparameters
     dataset: Literal["mnist", "cifar10", "imagenette"] = "mnist"
@@ -87,6 +86,9 @@ def main() -> None:
 
     # check device
     print(f"device: {device}")
+    
+    # get number of channels
+    num_channels: int = 1 if dataset == "mnist" else 3
 
     if generate_examples:
         # define paths
@@ -95,7 +97,7 @@ def main() -> None:
 
         # load data
         train_data, val_data = load_data(
-            dataset, DATA_PATH[dataset], batch_size=128, num_workers=4
+            dataset, DATA_PATH[dataset], batch_size=1, num_workers=4
         )
 
         # get height and width
@@ -140,7 +142,7 @@ def main() -> None:
 
         # create tensors for examples
         examples_tensor: torch.Tensor = torch.zeros(
-            (NUMBER_OF_CLASSES, 3, height, width)
+            (NUMBER_OF_CLASSES, num_channels, height, width)
         ).to(device)
 
         # load examples
@@ -218,7 +220,7 @@ def main() -> None:
                 value = value.view(value.shape[0], 1, 1)
                 mask = (saliency_maps > value) * (saliency_maps != 0)
                 mask = mask.unsqueeze(1)
-                mask = mask.repeat(1, 3, 1, 1)
+                mask = mask.repeat(1, num_channels, 1, 1)
 
                 inputs = examples_tensor.clone()
                 inputs[mask == 1] = 0
@@ -321,7 +323,6 @@ def main() -> None:
                             value = value.view(value.shape[0], 1, 1)
                             mask = (saliency_maps > value) * (saliency_maps != 0)
                             mask = mask.unsqueeze(1)
-                            num_channels: int = 1 if dataset == "mnist" else 3
                             mask = mask.repeat(1, num_channels, 1, 1)
 
                             for subs_value in [0, 1]:
